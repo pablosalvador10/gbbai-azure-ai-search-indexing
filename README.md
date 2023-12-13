@@ -1,8 +1,8 @@
-# Langchain & Azure AI Search Integration <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/>
+# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Langchain & Azure AI Search Integration (preview)
 Welcome to the Langchain and Azure AI Search Integration Quick Start Accelerator! This repository is your gateway to rapidly developing state-of-the-art AI systems by utilizing the combined strengths of Langchain and Azure AI Search. 
 
 
-## Project Overview
+## 🌐 Project Overview 
 
 The core objective of this project is to establish a seamless integration between Langchain and Azure AI Search. This integration is encapsulated in a class named `TextChunkingIndexing`. This class simplifies complex processes and overcomes typical hurdles by offering:
 
@@ -19,7 +19,7 @@ On the other side, we'll laverage the Azure AI search sdk and offering an in-dep
 
 This integration is intended to streamline the workflow of handling diverse text sources and optimizing their utility in Azure AI's powerful search environment.
 
-## Prerequisites 
+## ❗Prerequisites 
 
 ### 🔧 Dependencies
 
@@ -39,7 +39,7 @@ AZURE_SEARCH_SERVICE_ENDPOINT=****
 AZURE_SEARCH_ADMIN_KEY=****
 ```
 
-#### 🌐 Create Conda Environment
+#### 🐍 Create Conda Environment
 
 Reproducibility is crucial for consistency across environments and ease of collaboration. We use Conda environments to manage env dependencies and ensure uniform functionality across different environemnts. Requirements.txt can be used in your Docker for deployment, ensuring a 1:1 mapping between development and production environments. 
 

@@ -1,14 +1,17 @@
 import os
-from typing import Dict, List, Optional
+from langchain.document_loaders import PyPDFLoader
+from typing import Dict, List, Optional, Union
 
+import nest_asyncio
 import openai
 from azure.search.documents.indexes.models import (
     SearchFieldDataType, SearchField, SimpleField, SearchableField, SemanticSettings, SemanticConfiguration, PrioritizedFields, SemanticField
 )
 
 from dotenv import load_dotenv
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.document_loaders import WebBaseLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter
+from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.vectorstores.azuresearch import AzureSearch
 from langchain.docstore.document import Document
 
@@ -18,7 +21,7 @@ from utils.ml_logging import get_logger
 logger = get_logger()
 
 class TextChunkingIndexing:
-   """ This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain text from upstream applications.
+    """ This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain text from upstream applications.
        It facilitates the process of feeding these data into the Azure AI search index using Langchain integration. 
        The class also provides the flexibility to manually set environment variables or load them from a .env file. """
 
@@ -53,8 +56,8 @@ class TextChunkingIndexing:
         """
         load_dotenv()
 
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        self.openai_endpoint = os.getenv("OPENAI_ENDPOINT")
+        self.openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        self.openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.azure_openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
         self.azure_ai_search_service_endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
         self.azure_search_admin_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
@@ -62,8 +65,8 @@ class TextChunkingIndexing:
         # Check for any missing required environment variables
         missing_vars = [
             var_name for var_name, var in [
-                ("OPENAI_API_KEY", self.openai_api_key),
-                ("OPENAI_ENDPOINT", self.openai_endpoint),
+                ("AZURE_OPENAI_API_KEY", self.openai_api_key),
+                ("AZURE_OPENAI_ENDPOINT", self.openai_endpoint),
                 ("AZURE_OPENAI_API_VERSION", self.azure_openai_api_version),
                 ("AZURE_AI_SEARCH_SERVICE_ENDPOINT", self.azure_ai_search_service_endpoint),
                 ("AZURE_SEARCH_ADMIN_KEY", self.azure_search_admin_key)
@@ -73,59 +76,56 @@ class TextChunkingIndexing:
         if missing_vars:
             raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
-    def setup_aoai(
+    def _setup_aoai(
         self,
         api_key: Optional[str] = None,
         resource_endpoint: Optional[str] = None,
-        api_version: Optional[str] = None,
     ) -> None:
         """
         Configures the Azure OpenAI API client with the specified parameters.
 
-        Sets the API key, resource endpoint, and API version for the OpenAI client to interact with Azure services.
+        Sets the API key and resource endpoint for the OpenAI client to interact with Azure services.
 
         :param api_key: The API key for authentication with the OpenAI service.
         :param resource_endpoint: The base URL of the Azure OpenAI resource endpoint.
-        :param api_version: The version of the OpenAI API to be used.
         """
-        openai.api_type = "azure"
-        openai.api_key = api_key or self.openai_api_key
-        openai.api_base = resource_endpoint or self.openai_endpoint
-        openai.api_version = api_version or self.azure_openai_api_version
+        os.environ["AZURE_OPENAI_API_KEY"] = api_key or self.openai_api_key
+        os.environ["AZURE_OPENAI_ENDPOINT"] = resource_endpoint or self.openai_endpoint
 
     def load_embedding_model(
         self,
-        deployment: str,
-        model_name: Optional[str] = "text-embedding-ada-002",
-        openai_api_base: Optional[str] = None,
-        chunk_size: Optional[int] = 1000,
-    ) -> OpenAIEmbeddings:
+        azure_deployment: str,
+        api_key: Optional[str] = None,
+        resource_endpoint: Optional[str] = None,
+        openai_api_version: Optional[str] = None,
+        chunk_size: int = 1000,
+    ) -> AzureOpenAIEmbeddings:
         """
-        Loads and returns an OpenAIEmbeddings object with the specified configuration.
+        Loads and returns an AzureOpenAIEmbeddings object with the specified configuration.
 
-        :param deployment: The deployment ID for the OpenAI model.
+        :param azure_deployment: The deployment ID for the OpenAI model.
         :param model_name: The name of the OpenAI model to use.
-        :param openai_api_base: The base URL for the OpenAI API.
-        :param chunk_size: (optional) The size of chunks for processing data. Defaults to 1.
-        :return: Configured OpenAIEmbeddings object.
+        :param api_key: The API key for authentication. Overrides the default if provided.
+        :param resource_endpoint: The base URL of the Azure OpenAI resource endpoint. Overrides the default if provided.
+        :param openai_api_version: The version of the OpenAI API to be used. Overrides the default if provided.
+        :param chunk_size: The size of chunks for processing data. Defaults to 1000.
+        :return: Configured AzureOpenAIEmbeddings object.
         """
         logger.info(
-            f"Loading OpenAIEmbeddings object with model {model_name}, deployment {deployment}, and chunk size {chunk_size}"
+            f"Loading OpenAIEmbeddings object with model, deployment {azure_deployment}, and chunk size {chunk_size}"
         )
 
+        self._setup_aoai(api_key, resource_endpoint)
+
         try:
-            self.embeddings = OpenAIEmbeddings(
-                deployment=deployment,
-                model=model_name,
-                openai_api_base=openai_api_base or self.openai_endpoint,
-                openai_api_type="azure",
-                show_progress_bar=True,
-                chunk_size=chunk_size,
+            self.embeddings = AzureOpenAIEmbeddings(
+                azure_deployment=azure_deployment,
+                openai_api_version=openai_api_version or self.azure_openai_api_version,
             )
-            logger.info("OpenAIEmbeddings object created successfully.")
+            logger.info("AzureOpenAIEmbeddings object created successfully.")
             return self.embeddings
         except Exception as e:
-            logger.error(f"Error in creating OpenAIEmbeddings object: {e}")
+            logger.error(f"Error in creating AzureOpenAIEmbeddings object: {e}")
             raise
 
 
@@ -135,7 +135,7 @@ class TextChunkingIndexing:
         admin_key: Optional[str] = None,
         index_name: str = "langchain-vector-demo",
         fields: Optional[List] = None,
-        semantic_settings: Optional[List] = None,
+        semantic_settings_config: Optional[List] = None,
     ) -> AzureSearch:
         """
         Creates and configures an AzureSearch instance with the specified parameters or from environment variables.
@@ -150,7 +150,7 @@ class TextChunkingIndexing:
         :param admin_key: (optional) The admin key for authentication with the Azure Cognitive Search service. Defaults to environment variable.
         :param index_name: (optional) The name of the index to be used. Defaults to "langchain-vector-demo".
         :param fields: (optional) A list of SearchField objects that define the schema of the Azure Search index. If None, a default set is used.
-        :param semantic_settings: (optional) SemanticSettings object to customize semantic search configurations. If None, a default setting is used.
+        :param semantic_settings_config: (optional) SemanticSettings object to customize semantic search configurations. If None, a default setting is used.
         :return: Configured AzureSearch object.
         :raises ValueError: If the endpoint or admin_key is missing, or if embeddings are not configured.
         """
@@ -195,8 +195,8 @@ class TextChunkingIndexing:
             ]
 
         # Use default semantic settings if not provided
-        if not semantic_settings:
-            semantic_settings = [
+        if not semantic_settings_config:
+            semantic_settings_config=[
                     SemanticConfiguration(
                         name="config",
                         prioritized_fields=PrioritizedFields(
@@ -217,7 +217,7 @@ class TextChunkingIndexing:
             index_name=index_name,
             embedding_function=self.embeddings.embed_query,
             fields=fields,
-            semantic_settings=semantic_settings,
+            semantic_settings=SemanticSettings(default_configuration="config",configurations=semantic_settings_config)
         )
 
         logger.info("Azure Cognitive Search client configured successfully.")
@@ -315,15 +315,21 @@ class TextChunkingIndexing:
         :param pdf_path: Path to the directory or file containing the PDF files.
         :return: A single Document object if the path is a file, or a list of Document objects if the path is a directory.
         """
+        # Convert relative path to absolute path
+        pdf_path = os.path.abspath(pdf_path)
+
+        logger.info(f"Reading PDF files from {pdf_path}.")
+        
         documents = []
         if os.path.isdir(pdf_path):
             for file in os.listdir(pdf_path):
                 if file.endswith('.pdf'):
                     file_path = os.path.join(pdf_path, file)
+                    # Assuming PyPDFLoader is a class you have defined to handle PDF loading
                     loader = PyPDFLoader(file_path)
                     documents.extend(loader.load())
             return documents
-        elif os.path.isfile(pdf_path) and pdf_path.endswith('.pdf'):
+        elif pdf_path.endswith('.pdf'):
             loader = PyPDFLoader(pdf_path)
             documents.extend(loader.load())
             return documents
@@ -380,7 +386,12 @@ class TextChunkingIndexing:
                     "Azure Cognitive Search client has not been configured."
                 )
 
+            logger.info(f"Starting to embed and index {len(texts)} chuncks.")
             self.vector_store.add_documents(documents=texts)
+            logger.info(f"Successfully embedded and indexed {len(texts)} chuncks.")
+        except ValueError as ve:
+            logger.error(f"ValueError in embedding and indexing: {ve}")
+            raise
         except Exception as e:
-            logger.error(f"Error in embedding and indexing: {e}")
+            logger.error(f"Unexpected error in embedding and indexing: {e}")
             raise

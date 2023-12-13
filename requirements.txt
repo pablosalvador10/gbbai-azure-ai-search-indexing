@@ -2,7 +2,10 @@ requests>=2,<3
 msal>=0.6.1,<2
 python-docx
 python-dotenv
+pypdf
+azure-identity
 azure-search-documents==11.4.0b8
 openai
 langchain
 tiktoken
+bs4
