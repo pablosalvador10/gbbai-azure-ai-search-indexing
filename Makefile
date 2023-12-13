@@ -64,6 +64,9 @@ define log_section
 	@printf "\n${GREEN}--> $(1)${NC}\n\n"
 endef
 
+create_conda_env:
+	@echo "Creating conda environment"
+	conda env create -f environment.yml
 
 run_pylint:
 	@echo "Running linter"

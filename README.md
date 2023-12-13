@@ -26,7 +26,6 @@ This integration is intended to streamline the workflow of handling diverse text
 - **Azure Open AI Services**: To effectively vectorize data, we leverage the `ada` model within Azure OpenAI Services. This model, part of the suite of large language and generative AI models, is specifically designed for tasks that require nuanced understanding and processing of complex data. By utilizing `ada`, we can transform and represent diverse datasets in a vectorized format. [start here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-openai-service-launches-gpt-4-turbo-and-gpt-3-5-turbo-1106/ba-p/3985962)
 
 
-
 #### Environment Variables
 Add the following keys to your `.env` file (see `.env.sample`)
 
@@ -48,13 +47,20 @@ In this project, `make` is utilized to automate the execution of scripts, signif
 
 `make` is a powerful build automation tool traditionally used in software development for automating the compilation of executable programs and libraries. It works by reading files called `Makefiles` which define how to build and run tasks.
 
-
 ```bash
 make create_conda_env
 ```
 
-## 🛠 Getting Started
+## 🛠 Getting Started with `TextChunkingIndexing`
 
+To begin using the `TextChunkingIndexing` class, explore the detailed explanation in the provided notebooks. In essence, this repository, located under `srb/gbb_ai`, includes the `TextChunkingIndexing` class. It acts as an independent injection wrapper, facilitating the integration of LangChain and Azure AI Search. This setup streamlines the process of retrieving, storing, and indexing textual data from web and document sources into Azure AI Search.
+
+### Core Features
+
+1. **Text Chunking**: Efficiently segments large text bodies into smaller, manageable parts for improved processing and indexing.
+2. **Customization**: Offers flexibility to tailor chunk size and overlap, aligning with diverse text processing demands.
+3. **Text Vectorization**: Transforms segmented text into vector form, a key step for proficient indexing and data retrieval.
+4. **Integration with Vector Database**: Seamlessly indexes and retrieves these text vectors in Azure AI Search, enhancing data accessibility.
 
 
 ## 🌲 Project Tree Structure
