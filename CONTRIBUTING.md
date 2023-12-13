@@ -50,7 +50,6 @@ Through these guidelines, team members can collaboratively build a robust, user-
       - pip:
         - -r file:requirements.txt
         - -r file:requirements-codequality.txt
-        - -r file:requirements-pipelines.txt
     ```
 
     Second, take the following steps with regard to the requirement files:

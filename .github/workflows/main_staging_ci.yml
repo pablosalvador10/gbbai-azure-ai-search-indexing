@@ -17,15 +17,13 @@ jobs:
       - name: Setup Conda 🔧
         uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-file: environment.yaml  # Create an environment.yml file
-          activate-environment: my-template-environment
+          environment-file: environment.yml  # Create an environment.yml file
+          activate-environment: langchain-azureaisearch
           auto-activate-base: false
 
       - name: Activate Conda Node 🔧
         run: |
           conda list
-          conda install -c anaconda click
-          pip install -r requirements-pipelines.txt
           pip install -r requirements-codequality.txt
           pip install -r requirements.txt
 
