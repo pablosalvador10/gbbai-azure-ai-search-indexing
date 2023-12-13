@@ -6,16 +6,18 @@ Welcome to the Langchain and Azure AI Search Integration Quick Start Accelerator
 
 The core objective of this project is to establish a seamless integration between Langchain and Azure AI Search. This integration is encapsulated in a class named `TextChunkingIndexing`. This class simplifies complex processes and overcomes typical hurdles by offering:
 
-- **PDF, Web Pages, and Text Processing**: Ability to parse and process content from (PDFs)[01-indexing_pdfs.ipynb], (web pages)[02-indexing_from_web.ipynb] (including HTTPS locations), and (text)[03-indexing_from_text.ipynb] from downstream applications.
-- **Chunking and Indexing Features**: Functionality to chunk these files, which aids in organizing and structuring the data ultimately boosting relevance.
+- **PDF, Web Pages, and Text Processing**: Ability to parse and process content from [PDFs](01-indexing_pdfs.ipynb), [web pages](02-indexing_from_web.ipynb) (including HTTPS locations), and [text](03-indexing_from_text.ipynb) from downstream applications.
+- **Chunking and Indexing Features**: Functionality to chunk these files, which aids in organizing and structuring the data ultimately boosting relevance. Offers flexibility to tailor chunk size and overlap, aligning with diverse text processing demands.
 - **Seamless Indexing into Azure Search**: Tools to efficiently index the processed and chunked files into an Azure Search index.
-- **Search Capabilites**: Offering an in-depth walkthrough of the various search options available.
-    - **Keyword-Based Search**: Traditional search mechanism focusing on matching exact keywords in the search index.
-    + **Semantic Search**: Utilizing Azure AI's natural language processing capabilities to understand the intent and contextual meaning behind search queries, providing more relevant and refined results.
-    - **Hybrid Search**: A combination of keyword and semantic search, maximizing the efficiency and accuracy of search results.
-    + **Re-ranking**: Advanced feature to dynamically adjust the order of search results based on various criteria, ensuring the most relevant results are prioritized.
 
-This integration is intended to streamline the workflow of handling diverse text sources and optimizing their utility in Azure's powerful search environment.
+On the other side, we'll laverage the Azure AI search sdk and offering an in-depth walkthrough of the various search options available.
+
+- **Keyword-Based Search**: Traditional search mechanism focusing on matching exact keywords in the search index.
++ **Semantic Search**: Utilizing Azure AI's natural language processing capabilities to understand the intent and contextual meaning behind search queries, providing more relevant and refined results.
+- **Hybrid Search**: A combination of keyword and semantic search, maximizing the efficiency and accuracy of search results.
++ **Re-ranking**: Advanced feature to dynamically adjust the order of search results based on various criteria, ensuring the most relevant results are prioritized.
+
+This integration is intended to streamline the workflow of handling diverse text sources and optimizing their utility in Azure AI's powerful search environment.
 
 ## Prerequisites 
 
@@ -54,14 +56,6 @@ make create_conda_env
 ## 🛠 Getting Started with `TextChunkingIndexing`
 
 To begin using the `TextChunkingIndexing` class, explore the detailed explanation in the provided notebooks. In essence, this repository, located under `srb/gbb_ai`, includes the `TextChunkingIndexing` class. It acts as an independent injection wrapper, facilitating the integration of LangChain and Azure AI Search. This setup streamlines the process of retrieving, storing, and indexing textual data from web and document sources into Azure AI Search.
-
-### Core Features
-
-1. **Text Chunking**: Efficiently segments large text bodies into smaller, manageable parts for improved processing and indexing.
-2. **Customization**: Offers flexibility to tailor chunk size and overlap, aligning with diverse text processing demands.
-3. **Text Vectorization**: Transforms segmented text into vector form, a key step for proficient indexing and data retrieval.
-4. **Integration with Vector Database**: Seamlessly indexes and retrieves these text vectors in Azure AI Search, enhancing data accessibility.
-
 
 ## 🌲 Project Tree Structure
 
