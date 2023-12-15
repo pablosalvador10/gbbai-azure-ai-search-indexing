@@ -186,7 +186,7 @@ class TextChunkingIndexing:
                     name="content_vector",
                     type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
                     searchable=True,
-                    vector_search_dimensions=len(self.embeddings.embed_query("Text")), #TODO: review 
+                    vector_search_dimensions=len(self.embeddings.embed_query("Text")),
                     vector_search_configuration="default",
                 ),
                 SearchableField(name="metadata", type=SearchFieldDataType.String, searchable=True),
@@ -325,7 +325,6 @@ class TextChunkingIndexing:
             for file in os.listdir(pdf_path):
                 if file.endswith('.pdf'):
                     file_path = os.path.join(pdf_path, file)
-                    # Assuming PyPDFLoader is a class you have defined to handle PDF loading
                     loader = PyPDFLoader(file_path)
                     documents.extend(loader.load())
             return documents
@@ -370,7 +369,7 @@ class TextChunkingIndexing:
         """
         Embeds the given texts and indexes them in the configured vector store.
 
-        This method first checks if the vector store (like Azure Cognitive Search) is configured.
+        This method first checks if the vector store (like Azure AI Search) is configured.
         If configured, it proceeds to add the provided texts to the vector store for indexing.
 
         Args:
@@ -383,7 +382,7 @@ class TextChunkingIndexing:
         try:
             if not self.vector_store:
                 raise ValueError(
-                    "Azure Cognitive Search client has not been configured."
+                    "Azure AI Search client has not been configured."
                 )
 
             logger.info(f"Starting to embed and index {len(texts)} chuncks.")
