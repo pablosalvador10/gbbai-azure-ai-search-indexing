@@ -17,8 +17,6 @@ On the other side, we'll laverage the Azure AI search sdk and offering an in-dep
 - **Hybrid Search**: A combination of keyword and semantic search, maximizing the efficiency and accuracy of search results.
 + **Re-ranking**: Advanced feature to dynamically adjust the order of search results based on various criteria, ensuring the most relevant results are prioritized.
 
-This integration is intended to streamline the workflow of handling diverse text sources and optimizing their utility in Azure AI's powerful search environment.
-
 ## ❗Prerequisites 
 
 ### 🔧 Dependencies
