@@ -1,10 +1,9 @@
 from typing import List, Tuple, Optional
 import os
-from PyPDF2 import PdfReader
 import PyPDF2
 import io
-from azure.ai.formrecognizer import DocumentAnalysisClient, AnalyzedDocument
-from azure.core.credentials import AzureKeyCredential
+# from azure.ai.formrecognizer import DocumentAnalysisClient, AnalyzedDocument
+# from azure.core.credentials import AzureKeyCredential
 
 
 from dotenv import load_dotenv
