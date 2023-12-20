@@ -3,7 +3,6 @@ from langchain.document_loaders import PyPDFLoader
 from typing import Dict, List, Optional, Union
 
 import nest_asyncio
-import openai
 from azure.search.documents.indexes.models import (
     SearchFieldDataType, SearchField, SimpleField, SearchableField, SemanticSettings, SemanticConfiguration, PrioritizedFields, SemanticField
 )
