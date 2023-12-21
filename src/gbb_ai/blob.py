@@ -4,15 +4,14 @@ import json
 import pickle
 import pandas as pd
 from azure.storage.blob import BlobServiceClient
-from azure.identity import DefaultAzureCredential
-from typing import Any, Literal, Optional
-from src.gbb_ai.pdf_data_extractor import extract_text_from_pdf_bytes
+from typing import Any
+from src.gbb_ai.pdf_data_extractor import PDFHelper
 from dotenv import load_dotenv
 from docx import Document
-import PyPDF2
 from utils.ml_logging import get_logger
 
 logger = get_logger()
+pdf_helper = PDFHelper()
 
 class AzureBlobManager:
     """
@@ -97,7 +96,9 @@ class AzureBlobManager:
                 data = '\n'.join([para.text for para in doc.paragraphs])
                 logger.info(f"Successfully loaded DOCX file {file_name}")
             elif file_format == "pdf":
-                data = extract_text_from_pdf_bytes(content)
+                data = pdf_helper.extract_text_from_pdf_bytes(content)
+                metadata = pdf_helper.extract_metadata_from_pdf_bytes(content)
+                logger.info(f"Successfully loaded PDF file {metadata}")
             elif file_format == "txt":
                 data = content.decode()
                 logger.info(f"Successfully loaded TXT file {file_name}")

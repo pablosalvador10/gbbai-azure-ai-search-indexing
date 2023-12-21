@@ -130,9 +130,9 @@ class TextChunkingIndexing:
 
     def setup_azure_search(
         self,
+        index_name: str,
         endpoint: Optional[str] = None,
         admin_key: Optional[str] = None,
-        index_name: str = "langchain-vector-demo",
         fields: Optional[List] = None,
         semantic_settings_config: Optional[List] = None,
     ) -> AzureSearch:
