@@ -160,6 +160,7 @@ cython_debug/
 #.idea/
 
 notebooks/dev/test/*
+notebooks/dev/images/*
 
 outputs
 multirun
