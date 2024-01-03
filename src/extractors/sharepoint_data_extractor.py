@@ -7,9 +7,9 @@ import msal
 import requests
 from docx import Document as DocxDocument
 from dotenv import load_dotenv
-
 from gbb_ai.azure_search_security_trimming import SecurityGroupManager
 from gbb_ai.pdf_utils import extract_text_from_pdf_bytes
+
 # load logging
 from utils.ml_logging import get_logger
 

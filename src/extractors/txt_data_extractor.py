@@ -1,9 +1,10 @@
 import io
-import logging
+
 from utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()
+
 
 class TextFileHelper:
     """
@@ -39,10 +40,12 @@ class TextFileHelper:
         :return: Extracted text from the text file as a string, or None if extraction fails.
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 return self._extract_text_from_txt(file)
         except Exception as e:
-            logger.error(f"An unexpected error occurred when opening the text file: {e}")
+            logger.error(
+                f"An unexpected error occurred when opening the text file: {e}"
+            )
             return None
 
     def _extract_text_from_txt(self, file_stream) -> str:

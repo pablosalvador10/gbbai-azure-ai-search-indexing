@@ -1,11 +1,12 @@
-from PyPDF2 import PdfFileReader
-from dotenv import load_dotenv
 import io
+
+from PyPDF2 import PdfFileReader
 
 # load logging
 from utils.ml_logging import get_logger
 
 logger = get_logger()
+
 
 class PDFHelper:
     """This class facilitates the processing of PDF files.
@@ -28,7 +29,9 @@ class PDFHelper:
             with io.BytesIO(pdf_bytes) as pdf_stream:
                 return self._extract_text_from_pdf(pdf_stream)
         except Exception as e:
-            logger.error(f"An unexpected error occurred during PDF text extraction: {e}")
+            logger.error(
+                f"An unexpected error occurred during PDF text extraction: {e}"
+            )
             return None
 
     def extract_text_from_pdf_file(self, file_path: str) -> str:
@@ -38,7 +41,7 @@ class PDFHelper:
         :return: Extracted text from the PDF as a string, or None if extraction fails.
         """
         try:
-            with open(file_path, 'rb') as file:
+            with open(file_path, "rb") as file:
                 return self._extract_text_from_pdf(file)
         except Exception as e:
             logger.error(f"An unexpected error occurred when opening the PDF file: {e}")
@@ -57,13 +60,15 @@ class PDFHelper:
                 page = pdf_reader.getPage(page_num)
                 text.append(page.extractText())
 
-            extracted_text = '\n'.join(text)
+            extracted_text = "\n".join(text)
             logger.info("Text extraction from PDF was successful.")
             return extracted_text
         except Exception as e:
-            logger.error(f"An unexpected error occurred during PDF text extraction: {e}")
+            logger.error(
+                f"An unexpected error occurred during PDF text extraction: {e}"
+            )
             return None
-        
+
     def extract_metadata_from_pdf_bytes(self, pdf_bytes: bytes) -> dict:
         """
         Extracts metadata from a PDF file provided as a bytes object.
@@ -83,15 +88,13 @@ class PDFHelper:
                     "Producer": information.producer,
                     "Subject": information.subject,
                     "Title": information.title,
-                    "Number of pages": number_of_pages
+                    "Number of pages": number_of_pages,
                 }
 
                 logger.info("Metadata extraction from PDF bytes was successful.")
                 return metadata
         except Exception as e:
-            logger.error(f"An unexpected error occurred during PDF metadata extraction: {e}")
+            logger.error(
+                f"An unexpected error occurred during PDF metadata extraction: {e}"
+            )
             return None
-
-
-
-    

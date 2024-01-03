@@ -1,9 +1,12 @@
-from docx import Document
 import io
+
+from docx import Document
+
 from utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()
+
 
 class DocxHelper:
     """
@@ -28,7 +31,9 @@ class DocxHelper:
             with io.BytesIO(docx_bytes) as docx_stream:
                 return self._extract_text_from_docx(docx_stream)
         except Exception as e:
-            logger.error(f"An unexpected error occurred during DOCX text extraction: {e}")
+            logger.error(
+                f"An unexpected error occurred during DOCX text extraction: {e}"
+            )
             return None
 
     def extract_text_from_docx_file(self, file_path: str) -> str:
@@ -39,10 +44,12 @@ class DocxHelper:
         :return: Extracted text from the DOCX as a string, or None if extraction fails.
         """
         try:
-            with open(file_path, 'rb') as file:
+            with open(file_path, "rb") as file:
                 return self._extract_text_from_docx(file)
         except Exception as e:
-            logger.error(f"An unexpected error occurred when opening the DOCX file: {e}")
+            logger.error(
+                f"An unexpected error occurred when opening the DOCX file: {e}"
+            )
             return None
 
     def _extract_text_from_docx(self, file_stream) -> str:
@@ -56,9 +63,11 @@ class DocxHelper:
             document = Document(file_stream)
             text = [paragraph.text for paragraph in document.paragraphs]
 
-            extracted_text = '\n'.join(text)
+            extracted_text = "\n".join(text)
             logger.info("Text extraction from DOCX was successful.")
             return extracted_text
         except Exception as e:
-            logger.error(f"An unexpected error occurred during DOCX text extraction: {e}")
+            logger.error(
+                f"An unexpected error occurred during DOCX text extraction: {e}"
+            )
             return None

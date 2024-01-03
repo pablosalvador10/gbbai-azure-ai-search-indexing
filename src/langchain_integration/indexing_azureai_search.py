@@ -1,36 +1,46 @@
 import os
-from langchain.document_loaders import PyPDFLoader
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import nest_asyncio
 from azure.search.documents.indexes.models import (
-    SearchFieldDataType, SearchField, SimpleField, SearchableField, SemanticSettings, SemanticConfiguration, PrioritizedFields, SemanticField
+    PrioritizedFields,
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    SemanticConfiguration,
+    SemanticField,
+    SemanticSettings,
+    SimpleField,
 )
-
 from dotenv import load_dotenv
-from langchain.document_loaders import WebBaseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter
-from langchain.embeddings import AzureOpenAIEmbeddings
-from langchain.vectorstores.azuresearch import AzureSearch
 from langchain.docstore.document import Document
+from langchain.document_loaders import PyPDFLoader, WebBaseLoader
+from langchain.embeddings import AzureOpenAIEmbeddings
+from langchain.text_splitter import (
+    CharacterTextSplitter,
+    RecursiveCharacterTextSplitter,
+)
+from langchain.vectorstores.azuresearch import AzureSearch
 
 from utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()
 
+
 class TextChunkingIndexing:
-    """ This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain text from upstream applications.
-       It facilitates the process of feeding these data into the Azure AI search index using Langchain integration. 
-       The class also provides the flexibility to manually set environment variables or load them from a .env file. """
+    """This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain text from upstream applications.
+    It facilitates the process of feeding these data into the Azure AI search index using Langchain integration.
+    The class also provides the flexibility to manually set environment variables or load them from a .env file.
+    """
 
     def __init__(
-        self, 
-        openai_api_key: Optional[str] = None, 
-        openai_endpoint: Optional[str] = None, 
+        self,
+        openai_api_key: Optional[str] = None,
+        openai_endpoint: Optional[str] = None,
         azure_openai_api_version: Optional[str] = None,
         azure_ai_search_service_endpoint: Optional[str] = None,
-        azure_search_admin_key: Optional[str] = None
+        azure_search_admin_key: Optional[str] = None,
     ):
         """
         Initialize the TextChunkingIndexing class with optional environment variables.
@@ -58,22 +68,31 @@ class TextChunkingIndexing:
         self.openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
         self.openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.azure_openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
-        self.azure_ai_search_service_endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
+        self.azure_ai_search_service_endpoint = os.getenv(
+            "AZURE_AI_SEARCH_SERVICE_ENDPOINT"
+        )
         self.azure_search_admin_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
 
         # Check for any missing required environment variables
         missing_vars = [
-            var_name for var_name, var in [
+            var_name
+            for var_name, var in [
                 ("AZURE_OPENAI_API_KEY", self.openai_api_key),
                 ("AZURE_OPENAI_ENDPOINT", self.openai_endpoint),
                 ("AZURE_OPENAI_API_VERSION", self.azure_openai_api_version),
-                ("AZURE_AI_SEARCH_SERVICE_ENDPOINT", self.azure_ai_search_service_endpoint),
-                ("AZURE_SEARCH_ADMIN_KEY", self.azure_search_admin_key)
-            ] if not var
+                (
+                    "AZURE_AI_SEARCH_SERVICE_ENDPOINT",
+                    self.azure_ai_search_service_endpoint,
+                ),
+                ("AZURE_SEARCH_ADMIN_KEY", self.azure_search_admin_key),
+            ]
+            if not var
         ]
 
         if missing_vars:
-            raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")
+            raise EnvironmentError(
+                f"Missing required environment variables: {', '.join(missing_vars)}"
+            )
 
     def _setup_aoai(
         self,
@@ -127,7 +146,6 @@ class TextChunkingIndexing:
             logger.error(f"Error in creating AzureOpenAIEmbeddings object: {e}")
             raise
 
-
     def setup_azure_search(
         self,
         index_name: str,
@@ -142,7 +160,7 @@ class TextChunkingIndexing:
         If the endpoint or admin_key parameters are not provided, the function attempts to retrieve them from the environment variables.
         If any required parameter is missing, an error is raised.
 
-        The 'fields' and 'semantic_settings' parameters allow for customization of the Azure Search index schema and semantic configurations. 
+        The 'fields' and 'semantic_settings' parameters allow for customization of the Azure Search index schema and semantic configurations.
         If these parameters are not provided, default configurations are used.
 
         :param endpoint: (optional) The base URL of the Azure Cognitive Search endpoint. Defaults to environment variable.
@@ -172,15 +190,24 @@ class TextChunkingIndexing:
             raise ValueError(
                 f"Missing required parameters: {', '.join(missing_params)}"
             )
-        
+
         if not self.embeddings:
-            raise ValueError("OpenAIEmbeddings object has not been configured. Please call load_embedding_model() first.")
-        
+            raise ValueError(
+                "OpenAIEmbeddings object has not been configured. Please call load_embedding_model() first."
+            )
+
         # Use default fields if not provided
         if not fields:
             fields = [
-                SimpleField(name="id", type=SearchFieldDataType.String, key=True, filterable=True),
-                SearchableField(name="content", type=SearchFieldDataType.String, searchable=True),
+                SimpleField(
+                    name="id",
+                    type=SearchFieldDataType.String,
+                    key=True,
+                    filterable=True,
+                ),
+                SearchableField(
+                    name="content", type=SearchFieldDataType.String, searchable=True
+                ),
                 SearchField(
                     name="content_vector",
                     type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
@@ -188,27 +215,35 @@ class TextChunkingIndexing:
                     vector_search_dimensions=len(self.embeddings.embed_query("Text")),
                     vector_search_configuration="default",
                 ),
-                SearchableField(name="metadata", type=SearchFieldDataType.String, searchable=True),
-                SimpleField(name="source", type=SearchFieldDataType.String, filterable=True),
-                SearchableField(name="security_group", type=SearchFieldDataType.String, filterable=True),
+                SearchableField(
+                    name="metadata", type=SearchFieldDataType.String, searchable=True
+                ),
+                SimpleField(
+                    name="source", type=SearchFieldDataType.String, filterable=True
+                ),
+                SearchableField(
+                    name="security_group",
+                    type=SearchFieldDataType.String,
+                    filterable=True,
+                ),
             ]
 
         # Use default semantic settings if not provided
         if not semantic_settings_config:
-            semantic_settings_config=[
-                    SemanticConfiguration(
-                        name="config",
-                        prioritized_fields=PrioritizedFields(
-                            title_field=SemanticField(field_name="content"),
-                            prioritized_content_fields=[
-                                SemanticField(field_name="content")
-                            ],
-                            prioritized_keywords_fields=[
-                                SemanticField(field_name="metadata")
-                            ],
-                        ),
-                    )
-                ]
+            semantic_settings_config = [
+                SemanticConfiguration(
+                    name="config",
+                    prioritized_fields=PrioritizedFields(
+                        title_field=SemanticField(field_name="content"),
+                        prioritized_content_fields=[
+                            SemanticField(field_name="content")
+                        ],
+                        prioritized_keywords_fields=[
+                            SemanticField(field_name="metadata")
+                        ],
+                    ),
+                )
+            ]
 
         self.vector_store = AzureSearch(
             azure_search_endpoint=resolved_endpoint,
@@ -216,7 +251,9 @@ class TextChunkingIndexing:
             index_name=index_name,
             embedding_function=self.embeddings.embed_query,
             fields=fields,
-            semantic_settings=SemanticSettings(default_configuration="config",configurations=semantic_settings_config)
+            semantic_settings=SemanticSettings(
+                default_configuration="config", configurations=semantic_settings_config
+            ),
         )
 
         logger.info("Azure Cognitive Search client configured successfully.")
@@ -233,9 +270,9 @@ class TextChunkingIndexing:
         **kwargs,
     ) -> List[str]:
         """
-        Splits text from a list of Document objects into manageable chunks. This method primarily uses character 
+        Splits text from a list of Document objects into manageable chunks. This method primarily uses character
         count to determine chunk sizes but can also utilize separators for splitting.
-        
+
         :param documents: List of Document objects to split.
         :param chunk_size: (optional) The number of characters in each text chunk. Defaults to 1000.
         :param chunk_overlap: (optional) The number of characters to overlap between chunks. Defaults to 200.
@@ -250,12 +287,12 @@ class TextChunkingIndexing:
         try:
             # split documents into text and embeddings
             text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size, 
-            chunk_overlap=chunk_overlap,
-            separators=separators,
-            keep_separator=keep_separator,
-            is_separator_regex=is_separator_regex,
-            **kwargs
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                separators=separators,
+                keep_separator=keep_separator,
+                is_separator_regex=is_separator_regex,
+                **kwargs,
             )
             chunks = text_splitter.split_documents(documents)
             return chunks
@@ -318,22 +355,21 @@ class TextChunkingIndexing:
         pdf_path = os.path.abspath(pdf_path)
 
         logger.info(f"Reading PDF files from {pdf_path}.")
-        
+
         documents = []
         if os.path.isdir(pdf_path):
             for file in os.listdir(pdf_path):
-                if file.endswith('.pdf'):
+                if file.endswith(".pdf"):
                     file_path = os.path.join(pdf_path, file)
                     loader = PyPDFLoader(file_path)
                     documents.extend(loader.load())
             return documents
-        elif pdf_path.endswith('.pdf'):
+        elif pdf_path.endswith(".pdf"):
             loader = PyPDFLoader(pdf_path)
             documents.extend(loader.load())
             return documents
         else:
             raise ValueError("Invalid path. Path should be a directory or a .pdf file.")
-
 
     def load_and_split_text_by_character_from_pdf(
         self,
@@ -358,7 +394,9 @@ class TextChunkingIndexing:
         """
         try:
             documents = self.read_and_load_pdfs(source)
-            text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, **kwargs)
+            text_splitter = CharacterTextSplitter(
+                chunk_size=chunk_size, chunk_overlap=chunk_overlap, **kwargs
+            )
             return text_splitter.split_documents(documents)
         except Exception as e:
             logger.error(f"Error in loading and splitting text: {e}")
@@ -380,9 +418,7 @@ class TextChunkingIndexing:
         """
         try:
             if not self.vector_store:
-                raise ValueError(
-                    "Azure AI Search client has not been configured."
-                )
+                raise ValueError("Azure AI Search client has not been configured.")
 
             logger.info(f"Starting to embed and index {len(texts)} chuncks.")
             self.vector_store.add_documents(documents=texts)
