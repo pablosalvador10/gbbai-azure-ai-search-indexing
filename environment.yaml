@@ -1,4 +1,4 @@
-name: langchain-azureaisearch
+name: vector-indexing-azureaisearch
 channels:
   - conda-forge
   - defaults

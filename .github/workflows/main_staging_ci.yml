@@ -17,8 +17,8 @@ jobs:
       - name: Setup Conda 🔧
         uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-file: environment.yml  # Create an environment.yml file
-          activate-environment: langchain-azureaisearch
+          environment-file: environment.yaml  # Create an environment.yaml file
+          activate-environment: vector-indexing-azureaisearch
           auto-activate-base: false
 
       - name: Activate Conda Node 🔧

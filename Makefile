@@ -66,11 +66,15 @@ endef
 
 create_conda_env:
 	@echo "Creating conda environment"
-	conda env create -f environment.yml
+	conda env create -f environment.yaml
 
 activate_conda_env:
 	@echo "Creating conda environment"
-	conda activate langchain-azureaisearch 
+	conda activate vector-indexing-azureaisearch 
+
+remove_conda_env:
+	@echo "Removing conda environment"
+	conda env remove --name vector-indexing-azureaisearch
 
 run_pylint:
 	@echo "Running linter"
