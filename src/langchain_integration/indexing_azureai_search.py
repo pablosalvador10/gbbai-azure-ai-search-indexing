@@ -29,7 +29,8 @@ logger = get_logger()
 
 
 class TextChunkingIndexing:
-    """This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain text from upstream applications.
+    """This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain
+    text from upstream applications.
     It facilitates the process of feeding these data into the Azure AI search index using Langchain integration.
     The class also provides the flexibility to manually set environment variables or load them from a .env file.
     """
@@ -107,8 +108,15 @@ class TextChunkingIndexing:
         :param api_key: The API key for authentication with the OpenAI service.
         :param resource_endpoint: The base URL of the Azure OpenAI resource endpoint.
         """
-        os.environ["AZURE_OPENAI_API_KEY"] = api_key or self.openai_api_key
-        os.environ["AZURE_OPENAI_ENDPOINT"] = resource_endpoint or self.openai_endpoint
+        if api_key is None:
+            api_key = self.openai_api_key
+        if resource_endpoint is None:
+            resource_endpoint = self.openai_endpoint
+
+        if api_key is not None:
+            os.environ["AZURE_OPENAI_API_KEY"] = api_key
+        if resource_endpoint is not None:
+            os.environ["AZURE_OPENAI_ENDPOINT"] = resource_endpoint
 
     def load_embedding_model(
         self,
@@ -164,10 +172,13 @@ class TextChunkingIndexing:
         If these parameters are not provided, default configurations are used.
 
         :param endpoint: (optional) The base URL of the Azure Cognitive Search endpoint. Defaults to environment variable.
-        :param admin_key: (optional) The admin key for authentication with the Azure Cognitive Search service. Defaults to environment variable.
+        :param admin_key: (optional) The admin key for authentication with the Azure Cognitive Search service.
+                        Defaults to environment variable.
         :param index_name: (optional) The name of the index to be used. Defaults to "langchain-vector-demo".
-        :param fields: (optional) A list of SearchField objects that define the schema of the Azure Search index. If None, a default set is used.
-        :param semantic_settings_config: (optional) SemanticSettings object to customize semantic search configurations. If None, a default setting is used.
+        :param fields: (optional) A list of SearchField objects that define the schema of the Azure Search index.
+                        If None, a default set is used.
+        :param semantic_settings_config: (optional) SemanticSettings object to customize semantic search configurations.
+                        If None, a default setting is used.
         :return: Configured AzureSearch object.
         :raises ValueError: If the endpoint or admin_key is missing, or if embeddings are not configured.
         """

@@ -1,4 +1,4 @@
-# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Vectorize and Index your data from multiple sources 
+# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Vectorize and Index your data from multiple sources
 
 This repository offers an efficient solution for rapidly indexing data from various sources into Azure AI Search in a vectorized manner. By making the vectorization process straightforward, it allows you to leverage the sophisticated search capabilities of Azure AI Search (Hybrid + Rerank) to the fullest. This not only boosts your retrieval scores but also accelerates the optimization phase in your Retrieval Augmented Generation (RAG) development stage.
 
@@ -64,7 +64,7 @@ gbb_ai_indexer = TextChunkingIndexing()
 gbb_ai_indexer.load_environment_variables_from_env_file()
 ```
 
-## ❗Prerequisites 
+## ❗Prerequisites
 
 #### Setting Up Your Azure Services
 
@@ -103,7 +103,7 @@ To create the environment, use the following command in your command prompt:
 
 ```bash
 conda env create -f environment.yaml
-``` 
+```
 
 ## 🌲 Project Tree Structure
 

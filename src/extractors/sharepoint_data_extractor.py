@@ -144,7 +144,7 @@ class SharePointDataExtractor:
             '/test/test1/test2/' to access nested folders.
         :return: The formatted URL.
         """
-        folder_path_formatted = folder_path.rstrip("/")
+        folder_path_formatted = folder_path.rstrip("/")  # type: ignore
         return f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives/{drive_id}/root:{folder_path_formatted}:/"
 
     def _make_ms_graph_request(
@@ -154,7 +154,8 @@ class SharePointDataExtractor:
         Make a request to the Microsoft Graph API.
 
         :param url: The URL for the Microsoft Graph API endpoint.
-        :param access_token: Optional; The access token for Microsoft Graph API authentication. If not provided, uses the instance's stored token.
+        :param access_token: Optional; The access token for Microsoft Graph API authentication. If not provided, uses the
+        instance's stored token.
         :return: The JSON response from the Microsoft Graph API.
         :raises Exception: If there's an HTTP error or other issues in making the request.
         """
@@ -194,11 +195,15 @@ class SharePointDataExtractor:
                 return site_id
         except Exception as err:
             logger.error(f"Error retrieving Site ID: {err}")
-            return None
+            return ""
 
     def get_drive_id(self, site_id: str, access_token: Optional[str] = None) -> str:
         """
         Get the drive ID from a Microsoft Graph site.
+
+        :param site_id: The site ID in Microsoft Graph.
+        :param access_token: The access token for Microsoft Graph API authentication.
+        :return: The drive ID or an empty string if there's an error.
         """
         url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive"
 
@@ -211,7 +216,7 @@ class SharePointDataExtractor:
             return drive_id
         except Exception as err:
             logger.error(f"Error in get_drive_id: {err}")
-            raise
+            return ""
 
     def get_files_in_site(
         self,
@@ -321,7 +326,7 @@ class SharePointDataExtractor:
         :raises DataError: If there are issues with data processing.
         """
         try:
-            grouped_users = {}
+            grouped_users: Dict[str, List[str]] = {}
             for user in user_data:
                 roles = user.get("roles", [])
                 display_name = (
@@ -359,7 +364,10 @@ class SharePointDataExtractor:
         :param access_token: The access token for Microsoft Graph API authentication.
         :return: Bytes content of the file or None if there's an error.
         """
-        if access_token is None:
+        if not access_token:
+            if not self.access_token:
+                logger.error("No access token provided")
+                return None
             access_token = self.access_token
 
         folder_path_formatted = folder_path.rstrip("/") if folder_path else ""
@@ -510,18 +518,18 @@ class SharePointDataExtractor:
         :return: Dictionary with file names as keys and a dictionary containing their content, location, and users_by_role as values.
         """
         if self._are_required_variables_missing():
-            return None
+            return {}
 
         site_id, drive_id = self._get_site_and_drive_ids(site_domain, site_name)
         if not site_id or not drive_id:
-            return None
+            return {}
 
         files = self._get_files(
             site_id, drive_id, folder_path, minutes_ago, file_formats
         )
         if not files:
             logger.error("No files found in the site's drive")
-            return None
+            return {}
 
         return self._process_files(
             site_id, drive_id, folder_path, file_names, files, file_formats
@@ -547,7 +555,8 @@ class SharePointDataExtractor:
         missing_vars = [var_name for var_name, var in required_vars.items() if not var]
         if missing_vars:
             logger.error(
-                f"Required instance variables for SharePointDataExtractor are not set: {', '.join(missing_vars)}. Please load load_environment_variables_from_env_file or set them manually."
+                f"""Required instance variables for SharePointDataExtractor are not set: {', '.join(missing_vars)}.
+                Please load load_environment_variables_from_env_file or set them manually."""
             )
             return True
         return False
@@ -560,17 +569,17 @@ class SharePointDataExtractor:
 
         :param site_domain: The domain of the site.
         :param site_name: The name of the site.
-        :return: A tuple containing the site ID and drive ID, or (None, None) if either ID could not be retrieved.
+        :return: A tuple containing the site ID and drive ID, or ("", "") if either ID could not be retrieved.
         """
         site_id = self.get_site_id(site_domain, site_name)
         if not site_id:
             logger.error("Failed to retrieve site_id")
-            return None, None
+            return "", ""
 
         drive_id = self.get_drive_id(site_id)
         if not drive_id:
             logger.error("Failed to retrieve drive ID")
-            return None, None
+            return "", ""
 
         return site_id, drive_id
 

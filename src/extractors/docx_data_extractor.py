@@ -34,7 +34,7 @@ class DocxHelper:
             logger.error(
                 f"An unexpected error occurred during DOCX text extraction: {e}"
             )
-            return None
+            return ""
 
     def extract_text_from_docx_file(self, file_path: str) -> str:
         """
@@ -50,7 +50,7 @@ class DocxHelper:
             logger.error(
                 f"An unexpected error occurred when opening the DOCX file: {e}"
             )
-            return None
+            return ""
 
     def _extract_text_from_docx(self, file_stream) -> str:
         """
@@ -70,4 +70,4 @@ class DocxHelper:
             logger.error(
                 f"An unexpected error occurred during DOCX text extraction: {e}"
             )
-            return None
+            return ""

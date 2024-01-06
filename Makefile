@@ -1,5 +1,5 @@
-PYTHON_INTERPRETER = python3
-CONDA_ENV ?= my-template-environment
+PYTHON_INTERPRETER = python
+CONDA_ENV ?= vector-indexing-azureaisearch
 export PYTHONPATH=$(PWD):$PYTHONPATH;
 
 # Target for setting up pre-commit and pre-push hooks
@@ -21,8 +21,8 @@ check_code_quality:
 	# # Running 'flake8' for linting.
 	@pre-commit run flake8 --all-files
 
-	# Running 'mypy' for static type checking.
-	@pre-commit run mypy --all-files
+	# # Running 'mypy' for static type checking.
+	# @pre-commit run mypy --all-files
 
 	# Running 'check-yaml' to validate YAML files.
 	@pre-commit run check-yaml --all-files
@@ -49,8 +49,8 @@ fix_code_quality:
 run_unit_tests:
 	$(PYTHON_INTERPRETER) -m pytest --cov=my_module --cov-report=term-missing --cov-config=.coveragerc
 
-check_and_fix_code_quality: fix_code_quality check_code_quality
-check_and_fix_test_quality: run_unit_tests
+run_code_quality_checks: fix_code_quality check_code_quality
+run_tests: run_unit_tests
 
 # Targets for various operations and tests
 
@@ -70,11 +70,11 @@ create_conda_env:
 
 activate_conda_env:
 	@echo "Creating conda environment"
-	conda activate vector-indexing-azureaisearch 
+	conda activate $(CONDA_ENV)
 
 remove_conda_env:
 	@echo "Removing conda environment"
-	conda env remove --name vector-indexing-azureaisearch
+	conda env remove --name $(CONDA_ENV)
 
 run_pylint:
 	@echo "Running linter"

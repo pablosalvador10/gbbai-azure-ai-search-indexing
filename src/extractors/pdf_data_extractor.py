@@ -32,7 +32,7 @@ class PDFHelper:
             logger.error(
                 f"An unexpected error occurred during PDF text extraction: {e}"
             )
-            return None
+            return ""
 
     def extract_text_from_pdf_file(self, file_path: str) -> str:
         """
@@ -45,7 +45,7 @@ class PDFHelper:
                 return self._extract_text_from_pdf(file)
         except Exception as e:
             logger.error(f"An unexpected error occurred when opening the PDF file: {e}")
-            return None
+            return ""
 
     def _extract_text_from_pdf(self, file_stream) -> str:
         """
@@ -67,7 +67,7 @@ class PDFHelper:
             logger.error(
                 f"An unexpected error occurred during PDF text extraction: {e}"
             )
-            return None
+            return ""
 
     def extract_metadata_from_pdf_bytes(self, pdf_bytes: bytes) -> dict:
         """
@@ -97,4 +97,4 @@ class PDFHelper:
             logger.error(
                 f"An unexpected error occurred during PDF metadata extraction: {e}"
             )
-            return None
+            return {}

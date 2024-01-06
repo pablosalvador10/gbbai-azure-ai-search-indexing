@@ -23,14 +23,14 @@ class TextFileHelper:
         Extracts text from a text file provided as a bytes object.
 
         :param txt_bytes: Bytes object containing the text file data.
-        :return: Extracted text from the text file as a string, or None if extraction fails.
+        :return: Extracted text from the text file as a string, or an empty string if extraction fails.
         """
         try:
             with io.BytesIO(txt_bytes) as txt_stream:
                 return self._extract_text_from_txt(txt_stream)
         except Exception as e:
             logger.error(f"An unexpected error occurred during text extraction: {e}")
-            return None
+            return ""
 
     def extract_text_from_txt_file(self, file_path: str) -> str:
         """
@@ -46,7 +46,7 @@ class TextFileHelper:
             logger.error(
                 f"An unexpected error occurred when opening the text file: {e}"
             )
-            return None
+            return ""
 
     def _extract_text_from_txt(self, file_stream) -> str:
         """
@@ -61,4 +61,4 @@ class TextFileHelper:
             return text
         except Exception as e:
             logger.error(f"An unexpected error occurred during text extraction: {e}")
-            return None
+            return ""

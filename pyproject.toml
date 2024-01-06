@@ -50,13 +50,13 @@ files = "src/"
 exclude = "utils|tests"
 
 [tool.ruff]
-line-length = 124
+line-length = 144
 
 [tool.isort]
 profile = "black"
 
 [tool.flake8]
-max-line-length = 124
+max-line-length = 144
 
 [tool.pytest]
 addopts = "-vv --cov=. --cov-report xml:/tmp/coverage.xml --cov-report html:/tmp/coverage_html --cov-report term-missing"

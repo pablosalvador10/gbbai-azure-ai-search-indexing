@@ -23,4 +23,3 @@ This file meticulously documents all noteworthy changes made to the this project
 - **Vector Indexing from Blob Storage**: Implemented the functionality to perform vector indexing on data sourced from Blob Storage. This feature enhances the project's ability to process and analyze a wider range of data formats, thereby increasing its versatility and applicability. For more details on how this feature works, refer to the [Vector Indexing Guide](04-Vector_Indexing_from_blob_storage.ipynb).
 
 - **Vector Indexing from SharePoint**: Implemented the functionality to perform vector indexing on data sourced from SharePoint. This feature enhances the project's ability to process and analyze a wider range of data formats, thereby increasing its versatility and applicability. For more details on how this feature works, refer to the [Vector Indexing Guide](04-Vector_Indexing_from_blob_storage.ipynb).
-
