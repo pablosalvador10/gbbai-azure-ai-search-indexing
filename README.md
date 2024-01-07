@@ -1,4 +1,4 @@
-# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Vectorize and Index your data from multiple sources
+# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Azure AI Search: Vectorize and Index Your Data from Multiple Sources and Formats
 
 This repository offers an efficient solution for rapidly indexing data from various sources into Azure AI Search in a vectorized manner. By making the vectorization process straightforward, it allows you to leverage the sophisticated search capabilities of Azure AI Search (Hybrid + Rerank) to the fullest. This not only boosts your retrieval scores but also accelerates the optimization phase in your Retrieval Augmented Generation (RAG) development stage.
 

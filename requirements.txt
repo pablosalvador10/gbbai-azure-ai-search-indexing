@@ -1,5 +1,5 @@
 azure-identity
-azure-search-documents
+azure-search-documents==11.4.0
 azure-storage-blob
 bs4
 langchain
