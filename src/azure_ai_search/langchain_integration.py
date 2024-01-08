@@ -1,17 +1,9 @@
 import os
+from functools import lru_cache
+from tempfile import NamedTemporaryFile
 from typing import List, Optional, Union
 
 import nest_asyncio
-from azure.search.documents.indexes.models import (
-    PrioritizedFields,
-    SearchableField,
-    SearchField,
-    SearchFieldDataType,
-    SemanticConfiguration,
-    SemanticField,
-    SemanticSettings,
-    SimpleField,
-)
 from dotenv import load_dotenv
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader, WebBaseLoader
@@ -22,21 +14,27 @@ from langchain.text_splitter import (
 )
 from langchain.vectorstores.azuresearch import AzureSearch
 
+from src.azure_ai_search.utils import get_container_and_blob_name_from_url
+from src.extractors.blob_data_extractor import AzureBlobManager
 from utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()
 
 
-class TextChunkingIndexing:
-    """This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain
-    text from upstream applications.
-    It facilitates the process of feeding these data into the Azure AI search index using Langchain integration.
-    The class also provides the flexibility to manually set environment variables or load them from a .env file.
+class AzureAIChunkIndexer:
+    """
+    This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain
+    text from upstream applications. It facilitates the process of feeding these data into the Azure AI search index
+    using Langchain integration. The class also provides the flexibility to manually set environment variables or
+    load them from a .env file. Additionally, it can load an index from Azure AI Search.
     """
 
     def __init__(
         self,
+        index_name: Optional[str] = None,
+        embedding_azure_deployment_name: Optional[str] = None,
+        load_environment_variables_from_env_file: bool = True,
         openai_api_key: Optional[str] = None,
         openai_endpoint: Optional[str] = None,
         azure_openai_api_version: Optional[str] = None,
@@ -44,20 +42,35 @@ class TextChunkingIndexing:
         azure_search_admin_key: Optional[str] = None,
     ):
         """
-        Initialize the TextChunkingIndexing class with optional environment variables.
+        Initialize the AzureAIChunkIndexer class with optional environment variables.
 
+        :param index_name: The name of the Azure AI Search index to be used.
+        :param embedding_azure_deployment_name: The deployment ID for the OpenAI model.
+        :param load_environment_variables_from_env_file: A boolean indicating whether to load environment variables from a .env file.
         :param openai_api_key: OpenAI API key.
         :param openai_endpoint: OpenAI API endpoint.
         :param azure_openai_api_version: Azure OpenAI API version.
         :param azure_ai_search_service_endpoint: Azure AI Search Service endpoint.
         :param azure_search_admin_key: Azure Search admin key.
         """
+        self.index_name = index_name
+        self.embedding_azure_deployment_name = embedding_azure_deployment_name
         self.openai_api_key = openai_api_key
         self.openai_endpoint = openai_endpoint
         self.azure_openai_api_version = azure_openai_api_version
         self.azure_ai_search_service_endpoint = azure_ai_search_service_endpoint
         self.azure_search_admin_key = azure_search_admin_key
 
+        if load_environment_variables_from_env_file:
+            self.load_environment_variables_from_env_file()
+        if embedding_azure_deployment_name:
+            _ = self.load_embedding_model(
+                azure_deployment=embedding_azure_deployment_name
+            )
+        if index_name:
+            _ = self.load_azureai_index()
+
+    @lru_cache(maxsize=1)
     def load_environment_variables_from_env_file(self):
         """
         Loads required environment variables for the application from a .env file.
@@ -148,52 +161,37 @@ class TextChunkingIndexing:
                 azure_deployment=azure_deployment,
                 openai_api_version=openai_api_version or self.azure_openai_api_version,
             )
-            logger.info("AzureOpenAIEmbeddings object created successfully.")
+            logger.info(
+                """AzureOpenAIEmbeddings object has been created successfully. You can now access the embeddings
+                using the '.embeddings' attribute."""
+            )
             return self.embeddings
         except Exception as e:
             logger.error(f"Error in creating AzureOpenAIEmbeddings object: {e}")
             raise
 
-    def setup_azure_search(
-        self,
-        index_name: str,
-        endpoint: Optional[str] = None,
-        admin_key: Optional[str] = None,
-        fields: Optional[List] = None,
-        semantic_settings_config: Optional[List] = None,
-    ) -> AzureSearch:
+    def load_azureai_index(self) -> AzureSearch:
         """
-        Creates and configures an AzureSearch instance with the specified parameters or from environment variables.
+        Configures an existing AzureSearch instance with the specified index name.
 
-        If the endpoint or admin_key parameters are not provided, the function attempts to retrieve them from the environment variables.
-        If any required parameter is missing, an error is raised.
-
-        The 'fields' and 'semantic_settings' parameters allow for customization of the Azure Search index schema and semantic configurations.
-        If these parameters are not provided, default configurations are used.
-
-        :param endpoint: (optional) The base URL of the Azure Cognitive Search endpoint. Defaults to environment variable.
-        :param admin_key: (optional) The admin key for authentication with the Azure Cognitive Search service.
-                        Defaults to environment variable.
-        :param index_name: (optional) The name of the index to be used. Defaults to "langchain-vector-demo".
-        :param fields: (optional) A list of SearchField objects that define the schema of the Azure Search index.
-                        If None, a default set is used.
-        :param semantic_settings_config: (optional) SemanticSettings object to customize semantic search configurations.
-                        If None, a default setting is used.
         :return: Configured AzureSearch object.
-        :raises ValueError: If the endpoint or admin_key is missing, or if embeddings are not configured.
+        :raises ValueError: If the AzureSearch instance or embeddings are not configured.
         """
-
-        # Default to environment variables if parameters are not provided
-        resolved_endpoint = endpoint or self.azure_ai_search_service_endpoint
-        resolved_admin_key = admin_key or self.azure_search_admin_key
 
         # Validate that all required configurations are set
-        if not all([resolved_endpoint, resolved_admin_key]):
+        if not all(
+            [
+                self.azure_ai_search_service_endpoint,
+                self.azure_search_admin_key,
+                self.index_name,
+            ]
+        ):
             missing_params = [
                 param
                 for param, value in {
-                    "endpoint": resolved_endpoint,
-                    "admin_key": resolved_admin_key,
+                    "vector_store_address": self.azure_ai_search_service_endpoint,
+                    "vector_store_password": self.azure_search_admin_key,
+                    "index_name": self.index_name,
                 }.items()
                 if not value
             ]
@@ -207,67 +205,16 @@ class TextChunkingIndexing:
                 "OpenAIEmbeddings object has not been configured. Please call load_embedding_model() first."
             )
 
-        # Use default fields if not provided
-        if not fields:
-            fields = [
-                SimpleField(
-                    name="id",
-                    type=SearchFieldDataType.String,
-                    key=True,
-                    filterable=True,
-                ),
-                SearchableField(
-                    name="content", type=SearchFieldDataType.String, searchable=True
-                ),
-                SearchField(
-                    name="content_vector",
-                    type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-                    searchable=True,
-                    vector_search_dimensions=len(self.embeddings.embed_query("Text")),
-                    vector_search_configuration="default",
-                ),
-                SearchableField(
-                    name="metadata", type=SearchFieldDataType.String, searchable=True
-                ),
-                SimpleField(
-                    name="source", type=SearchFieldDataType.String, filterable=True
-                ),
-                SearchableField(
-                    name="security_group",
-                    type=SearchFieldDataType.String,
-                    filterable=True,
-                ),
-            ]
-
-        # Use default semantic settings if not provided
-        if not semantic_settings_config:
-            semantic_settings_config = [
-                SemanticConfiguration(
-                    name="config",
-                    prioritized_fields=PrioritizedFields(
-                        title_field=SemanticField(field_name="content"),
-                        prioritized_content_fields=[
-                            SemanticField(field_name="content")
-                        ],
-                        prioritized_keywords_fields=[
-                            SemanticField(field_name="metadata")
-                        ],
-                    ),
-                )
-            ]
-
         self.vector_store = AzureSearch(
-            azure_search_endpoint=resolved_endpoint,
-            azure_search_key=resolved_admin_key,
-            index_name=index_name,
+            azure_search_endpoint=self.azure_ai_search_service_endpoint,
+            azure_search_key=self.azure_search_admin_key,
+            index_name=self.index_name,
             embedding_function=self.embeddings.embed_query,
-            fields=fields,
-            semantic_settings=SemanticSettings(
-                default_configuration="config", configurations=semantic_settings_config
-            ),
         )
 
-        logger.info("Azure Cognitive Search client configured successfully.")
+        logger.info(
+            f"The Azure AI search index '{self.index_name}' has been loaded correctly."
+        )
         return self.vector_store
 
     @staticmethod
@@ -275,41 +222,53 @@ class TextChunkingIndexing:
         documents: List[Document],
         chunk_size: Optional[int] = 1000,
         chunk_overlap: Optional[int] = 200,
-        separators: Optional[List[str]] = None,
+        recursive_separators: Optional[List[str]] = None,
+        char_separator: Optional[str] = "\n\n",
         keep_separator: bool = True,
         is_separator_regex: bool = False,
+        use_recursive_splitter: bool = True,
         **kwargs,
     ) -> List[str]:
         """
-        Splits text from a list of Document objects into manageable chunks. This method primarily uses character
-        count to determine chunk sizes but can also utilize separators for splitting.
+        Splits text from a list of Document objects into manageable chunks.
+        The method can use either RecursiveCharacterTextSplitter or CharacterTextSplitter based on the flag.
+        For more information on how RecursiveCharacterTextSplitter works,
+        refer to this article: `https://dev.to/eteimz/understanding-langchains-recursivecharactertextsplitter-2846`
+
 
         :param documents: List of Document objects to split.
-        :param chunk_size: (optional) The number of characters in each text chunk. Defaults to 1000.
-        :param chunk_overlap: (optional) The number of characters to overlap between chunks. Defaults to 200.
-        :param separators: (optional) List of strings or regex patterns to use as separators for splitting.
-        :param keep_separator: (optional) Whether to keep the separators in the resulting chunks. Defaults to True.
-        :param is_separator_regex: (optional) Treat the separators as regex patterns. Defaults to False.
-        :param kwargs: Additional keyword arguments for customization.
+        :param chunk_size: The number of characters in each text chunk. Defaults to 1000.
+        :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 200.
+        :param recursive_separators: List of strings or regex patterns to use as separators for splitting with RecursiveCharacterTextSplitter.
+        :param char_separator: String or regex pattern to use as a separator for splitting with CharacterTextSplitter.
+        :param keep_separator: Whether to keep the separators in the resulting chunks. Defaults to True.
+        :param is_separator_regex: Treat the separators as regex patterns. Defaults to False.
+        :param use_recursive_splitter: Boolean flag to choose between recursive or non-recursive splitter. Defaults to False.
         :return: A list of text chunks.
-        :raises Exception: If an error occurs during the text splitting process.
         """
-
         try:
-            # split documents into text and embeddings
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-                separators=separators,
-                keep_separator=keep_separator,
-                is_separator_regex=is_separator_regex,
-                **kwargs,
-            )
+            if use_recursive_splitter:
+                text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap,
+                    separators=recursive_separators,
+                    keep_separator=keep_separator,
+                    is_separator_regex=is_separator_regex,
+                    **kwargs,
+                )
+            else:
+                text_splitter = CharacterTextSplitter(
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap,
+                    separator=char_separator,
+                    is_separator_regex=is_separator_regex,
+                    **kwargs,
+                )
+
             chunks = text_splitter.split_documents(documents)
             return chunks
         except Exception as e:
-            logger.error(f"Error in scraping and splitting text: {e}")
-            raise
+            raise Exception(f"Error in splitting text: {e}")
 
     @staticmethod
     def scrape_web_text_and_split_by_character(
@@ -350,37 +309,65 @@ class TextChunkingIndexing:
             raise
 
     @staticmethod
-    def read_and_load_pdfs(pdf_path: str) -> List:
+    def read_and_load_pdf(
+        pdf_path: Optional[str] = None, pdf_url: Optional[str] = None
+    ) -> Document:
         """
-        Reads and loads PDF files from a given path.
+        Reads and loads a single PDF file from a given local path or a URL from Azure Blob Storage.
 
-        This function checks if the given path is a directory or a file.
-        If it's a directory, it goes through the directory and for each file that ends with '.pdf',
-        it reads the file, loads its content, and adds it to a list of documents.
-        If it's a file, it reads the file, loads its content, and returns a single Document object.
+        This function checks if a local path or a URL is provided.
+        If a local path is provided, it reads the file, loads its content, and returns a Document object.
+        If a URL is provided, it checks if it's a blob URL. If it is, it downloads the file from Azure Blob Storage,
+        reads it, loads its content, and returns a Document object.
+        If the URL does not contain "blob.core.windows.net", it treats it as a local file path and follows
+        the same logic as if a local path was provided.
 
-        :param pdf_path: Path to the directory or file containing the PDF files.
-        :return: A single Document object if the path is a file, or a list of Document objects if the path is a directory.
+        :param pdf_path: Path to the local PDF file.
+        :param pdf_url: URL of the PDF file in Azure Blob Storage or a local file path.
+        :return: A Document object containing the content of the PDF file.
         """
-        # Convert relative path to absolute path
-        pdf_path = os.path.abspath(pdf_path)
+        if pdf_path:
+            # Convert relative path to absolute path
+            pdf_path = os.path.abspath(pdf_path)
 
-        logger.info(f"Reading PDF files from {pdf_path}.")
+            logger.info(f"Reading PDF file from {pdf_path}.")
 
-        documents = []
-        if os.path.isdir(pdf_path):
-            for file in os.listdir(pdf_path):
-                if file.endswith(".pdf"):
-                    file_path = os.path.join(pdf_path, file)
-                    loader = PyPDFLoader(file_path)
-                    documents.extend(loader.load())
-            return documents
-        elif pdf_path.endswith(".pdf"):
-            loader = PyPDFLoader(pdf_path)
-            documents.extend(loader.load())
-            return documents
+            if pdf_path.endswith(".pdf"):
+                loader = PyPDFLoader(pdf_path)
+                document = loader.load()
+                return document
+            else:
+                raise ValueError("Invalid path. Path should be a .pdf file.")
+        elif pdf_url:
+            if "blob.core.windows.net" in pdf_url:
+                logger.info(f"Downloading and reading PDF file from {pdf_url}.")
+                container_name, file_name = get_container_and_blob_name_from_url(
+                    pdf_url
+                )
+                az_manager = AzureBlobManager(container_name=container_name)
+
+                with NamedTemporaryFile(
+                    mode="wb", suffix=".pdf", delete=True
+                ) as temp_file:
+                    blob_client = az_manager.container_client.get_blob_client(file_name)
+                    download_stream = blob_client.download_blob()
+                    temp_file.write(download_stream.readall())
+                    print(temp_file.name)
+                    # Load the content of the PDF file
+                    loader = PyPDFLoader(temp_file.name)
+                    document = loader.load()
+                    return document
+            else:
+                logger.info(f"Reading PDF file from {pdf_url}.")
+
+                if pdf_url.endswith(".pdf"):
+                    loader = PyPDFLoader(pdf_url)
+                    document = loader.load()
+                    return document
+                else:
+                    raise ValueError("Invalid path. Path should be a .pdf file.")
         else:
-            raise ValueError("Invalid path. Path should be a directory or a .pdf file.")
+            raise ValueError("Either a local path or a URL must be provided.")
 
     def load_and_split_text_by_character_from_pdf(
         self,

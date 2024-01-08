@@ -7,14 +7,12 @@ import msal
 import requests
 from docx import Document as DocxDocument
 from dotenv import load_dotenv
-from gbb_ai.azure_search_security_trimming import SecurityGroupManager
 from gbb_ai.pdf_utils import extract_text_from_pdf_bytes
 
 # load logging
 from utils.ml_logging import get_logger
 
 logger = get_logger()
-manager_security = SecurityGroupManager()
 
 
 class SharePointDataExtractor:
@@ -144,7 +142,7 @@ class SharePointDataExtractor:
             '/test/test1/test2/' to access nested folders.
         :return: The formatted URL.
         """
-        folder_path_formatted = folder_path.rstrip("/")  # type: ignore
+        folder_path_formatted = folder_path.rstrip("/")
         return f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives/{drive_id}/root:{folder_path_formatted}:/"
 
     def _make_ms_graph_request(
@@ -154,8 +152,8 @@ class SharePointDataExtractor:
         Make a request to the Microsoft Graph API.
 
         :param url: The URL for the Microsoft Graph API endpoint.
-        :param access_token: Optional; The access token for Microsoft Graph API authentication. If not provided, uses the
-        instance's stored token.
+        :param access_token: Optional; The access token for Microsoft Graph API authentication. If not provided,
+        uses the instance's stored token.
         :return: The JSON response from the Microsoft Graph API.
         :raises Exception: If there's an HTTP error or other issues in making the request.
         """
@@ -195,15 +193,11 @@ class SharePointDataExtractor:
                 return site_id
         except Exception as err:
             logger.error(f"Error retrieving Site ID: {err}")
-            return ""
+            return None
 
     def get_drive_id(self, site_id: str, access_token: Optional[str] = None) -> str:
         """
         Get the drive ID from a Microsoft Graph site.
-
-        :param site_id: The site ID in Microsoft Graph.
-        :param access_token: The access token for Microsoft Graph API authentication.
-        :return: The drive ID or an empty string if there's an error.
         """
         url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive"
 
@@ -216,7 +210,7 @@ class SharePointDataExtractor:
             return drive_id
         except Exception as err:
             logger.error(f"Error in get_drive_id: {err}")
-            return ""
+            raise
 
     def get_files_in_site(
         self,
@@ -314,36 +308,45 @@ class SharePointDataExtractor:
             raise
 
     @staticmethod
-    def group_users_by_role(user_data: List[Dict]) -> Dict[str, List[str]]:
+    def get_read_access_entities(permissions):
         """
-        Group users by their roles and return a dictionary representing this grouping.
+        Extracts user IDs and group names of entities with read access from the given permissions data.
 
-        This function takes a list of user data dictionaries, each containing user roles, and other attributes.
-        It returns a dictionary where the keys are roles and the values are lists of user display names corresponding to each role.
-
-        :param user_data: List of dictionaries containing user data.
-        :return: Dictionary representing users grouped by their roles.
-        :raises DataError: If there are issues with data processing.
+        :param permissions: List of permission dictionaries.
+        :return: List of entities (user IDs and group names/IDs) with read access.
         """
-        try:
-            grouped_users: Dict[str, List[str]] = {}
-            for user in user_data:
-                roles = user.get("roles", [])
-                display_name = (
-                    user.get("grantedTo", {}).get("user", {}).get("displayName")
-                    or user.get("grantedToV2", {})
-                    .get("siteGroup", {})
-                    .get("displayName")
-                    or user.get("grantedToV2", {}).get("group", {}).get("displayName")
-                )
+        read_access_entities = []
 
-                for role in roles:
-                    grouped_users.setdefault(role, []).append(display_name)
+        for permission in permissions:
+            if not isinstance(permission, dict) or "roles" not in permission:
+                continue
 
-            return grouped_users
-        except Exception as e:
-            logger.error(f"Error processing user data: {e}")
-            raise
+            if "read" in permission.get("roles", []):
+                # Process grantedToIdentitiesV2 for individual users
+                identities_v2 = permission.get("grantedToIdentitiesV2", [])
+                for identity in identities_v2:
+                    user = identity.get("user", {})
+                    user_id = user.get("id")
+                    if user_id and user_id not in read_access_entities:
+                        read_access_entities.append(user_id)
+
+                # Process grantedToIdentities for individual users
+                identities = permission.get("grantedToIdentities", [])
+                for identity in identities:
+                    user = identity.get("user", {})
+                    user_id = user.get("id")
+                    if user_id and user_id not in read_access_entities:
+                        read_access_entities.append(user_id)
+
+                # Process grantedToV2 for groups
+                groups = permission.get("grantedToV2", {}).get("siteGroup", {})
+                group_name = groups.get(
+                    "displayName"
+                )  # or groups.get('id') for group ID
+                if group_name and group_name not in read_access_entities:
+                    read_access_entities.append(group_name)
+
+        return
 
     def get_file_content_bytes(
         self,
@@ -364,10 +367,7 @@ class SharePointDataExtractor:
         :param access_token: The access token for Microsoft Graph API authentication.
         :return: Bytes content of the file or None if there's an error.
         """
-        if not access_token:
-            if not self.access_token:
-                logger.error("No access token provided")
-                return None
+        if access_token is None:
             access_token = self.access_token
 
         folder_path_formatted = folder_path.rstrip("/") if folder_path else ""
@@ -476,20 +476,26 @@ class SharePointDataExtractor:
             Dict[str, Optional[Union[str, datetime]]]: A dictionary with the extracted file information.
             If a field is not present in the file data, the function will return None for that field.
         """
+
+        def format_date(date_str):
+            # Append 'Z' if it's missing to indicate UTC timezone
+            return date_str if date_str.endswith("Z") else f"{date_str}Z"
+
         return {
+            "id": file_data.get("id"),
             "webUrl": file_data.get("webUrl"),
             "size": file_data.get("size"),
             "createdBy": file_data.get("createdBy", {})
             .get("user", {})
             .get("displayName"),
-            "createdDateTime": file_data.get("fileSystemInfo", {})
-            .get("createdDateTime", "")
-            .rstrip("Z")
+            "createdDateTime": format_date(
+                file_data.get("fileSystemInfo", {}).get("createdDateTime", "")
+            )
             if file_data.get("fileSystemInfo", {}).get("createdDateTime")
             else None,
-            "lastModifiedDateTime": file_data.get("fileSystemInfo", {})
-            .get("lastModifiedDateTime", "")
-            .rstrip("Z")
+            "lastModifiedDateTime": format_date(
+                file_data.get("fileSystemInfo", {}).get("lastModifiedDateTime", "")
+            )
             if file_data.get("fileSystemInfo", {}).get("lastModifiedDateTime")
             else None,
             "lastModifiedBy": file_data.get("lastModifiedBy", {})
@@ -518,18 +524,18 @@ class SharePointDataExtractor:
         :return: Dictionary with file names as keys and a dictionary containing their content, location, and users_by_role as values.
         """
         if self._are_required_variables_missing():
-            return {}
+            return None
 
         site_id, drive_id = self._get_site_and_drive_ids(site_domain, site_name)
         if not site_id or not drive_id:
-            return {}
+            return None
 
         files = self._get_files(
             site_id, drive_id, folder_path, minutes_ago, file_formats
         )
         if not files:
             logger.error("No files found in the site's drive")
-            return {}
+            return None
 
         return self._process_files(
             site_id, drive_id, folder_path, file_names, files, file_formats
@@ -555,8 +561,8 @@ class SharePointDataExtractor:
         missing_vars = [var_name for var_name, var in required_vars.items() if not var]
         if missing_vars:
             logger.error(
-                f"""Required instance variables for SharePointDataExtractor are not set: {', '.join(missing_vars)}.
-                Please load load_environment_variables_from_env_file or set them manually."""
+                f"""Required instance variables for SharePointDataExtractor
+                are not set: {', '.join(missing_vars)}. Please load load_environment_variables_from_env_file or set them manually."""
             )
             return True
         return False
@@ -569,17 +575,17 @@ class SharePointDataExtractor:
 
         :param site_domain: The domain of the site.
         :param site_name: The name of the site.
-        :return: A tuple containing the site ID and drive ID, or ("", "") if either ID could not be retrieved.
+        :return: A tuple containing the site ID and drive ID, or (None, None) if either ID could not be retrieved.
         """
         site_id = self.get_site_id(site_domain, site_name)
         if not site_id:
             logger.error("Failed to retrieve site_id")
-            return "", ""
+            return None, None
 
         drive_id = self.get_drive_id(site_id)
         if not drive_id:
             logger.error("Failed to retrieve drive ID")
-            return "", ""
+            return None, None
 
         return site_id, drive_id
 
@@ -650,18 +656,12 @@ class SharePointDataExtractor:
                 content = self._retrieve_file_content(
                     site_id, drive_id, folder_path, file_name
                 )
-                users_by_role = self.group_users_by_role(
+                users_by_role = self.get_read_access_entities(
                     self.get_file_permissions(site_id, file["id"])
                 )
-                sec_group = SecurityGroupManager().get_highest_priority_group(
-                    users_by_role
-                )
-
                 file_content = {
                     "content": content,
-                    "metadata": self._format_metadata(
-                        metadata, file_name, users_by_role, sec_group
-                    ),
+                    **self._format_metadata(metadata, file_name, users_by_role),
                 }
                 file_contents.append(file_content)
 
@@ -706,7 +706,10 @@ class SharePointDataExtractor:
         return None
 
     def _format_metadata(
-        self, metadata: Dict, file_name: str, users_by_role: Dict, sec_group: str
+        self,
+        metadata: Dict,
+        file_name: str,
+        users_by_role: Dict,
     ) -> Dict:
         """
         Format and return file metadata.
@@ -714,10 +717,10 @@ class SharePointDataExtractor:
         :param metadata: Dictionary of file metadata.
         :param file_name: Name of the file.
         :param users_by_role: Dictionary of users grouped by their role.
-        :param sec_group: Security group associated with the file.
         :return: Formatted metadata as a dictionary.
         """
-        return {
+        formatted_metadata = {
+            "id": metadata["id"],
             "source": metadata["webUrl"],
             "name": file_name,
             "size": metadata["size"],
@@ -725,6 +728,6 @@ class SharePointDataExtractor:
             "created_datetime": metadata["createdDateTime"],
             "last_modified_datetime": metadata["lastModifiedDateTime"],
             "last_modified_by": metadata["lastModifiedBy"],
-            "read_access_group": users_by_role,
-            "security_group": sec_group,
+            "read_access_entity": users_by_role,
         }
+        return formatted_metadata
