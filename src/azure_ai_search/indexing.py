@@ -1,6 +1,5 @@
 import os
 from functools import lru_cache
-from tempfile import NamedTemporaryFile
 from typing import List, Optional, Union
 
 import nest_asyncio
@@ -8,21 +7,18 @@ from dotenv import load_dotenv
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader, WebBaseLoader
 from langchain.embeddings import AzureOpenAIEmbeddings
-from langchain.text_splitter import (
-    CharacterTextSplitter,
-    RecursiveCharacterTextSplitter,
-)
+from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.azuresearch import AzureSearch
 
+from src.azure_ai_search.loaders import AzureDocumentLoader
 from src.azure_ai_search.utils import get_container_and_blob_name_from_url
-from src.extractors.blob_data_extractor import AzureBlobManager
 from utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()
 
 
-class AzureAIChunkIndexer:
+class AzureAIndexer:
     """
     This class serves as the integration point for chunking and indexing files sourced from web PDFs and plain
     text from upstream applications. It facilitates the process of feeding these data into the Azure AI search index
@@ -218,59 +214,6 @@ class AzureAIChunkIndexer:
         return self.vector_store
 
     @staticmethod
-    def split_documents_in_chunks(
-        documents: List[Document],
-        chunk_size: Optional[int] = 1000,
-        chunk_overlap: Optional[int] = 200,
-        recursive_separators: Optional[List[str]] = None,
-        char_separator: Optional[str] = "\n\n",
-        keep_separator: bool = True,
-        is_separator_regex: bool = False,
-        use_recursive_splitter: bool = True,
-        **kwargs,
-    ) -> List[str]:
-        """
-        Splits text from a list of Document objects into manageable chunks.
-        The method can use either RecursiveCharacterTextSplitter or CharacterTextSplitter based on the flag.
-        For more information on how RecursiveCharacterTextSplitter works,
-        refer to this article: `https://dev.to/eteimz/understanding-langchains-recursivecharactertextsplitter-2846`
-
-
-        :param documents: List of Document objects to split.
-        :param chunk_size: The number of characters in each text chunk. Defaults to 1000.
-        :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 200.
-        :param recursive_separators: List of strings or regex patterns to use as separators for splitting with RecursiveCharacterTextSplitter.
-        :param char_separator: String or regex pattern to use as a separator for splitting with CharacterTextSplitter.
-        :param keep_separator: Whether to keep the separators in the resulting chunks. Defaults to True.
-        :param is_separator_regex: Treat the separators as regex patterns. Defaults to False.
-        :param use_recursive_splitter: Boolean flag to choose between recursive or non-recursive splitter. Defaults to False.
-        :return: A list of text chunks.
-        """
-        try:
-            if use_recursive_splitter:
-                text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=chunk_size,
-                    chunk_overlap=chunk_overlap,
-                    separators=recursive_separators,
-                    keep_separator=keep_separator,
-                    is_separator_regex=is_separator_regex,
-                    **kwargs,
-                )
-            else:
-                text_splitter = CharacterTextSplitter(
-                    chunk_size=chunk_size,
-                    chunk_overlap=chunk_overlap,
-                    separator=char_separator,
-                    is_separator_regex=is_separator_regex,
-                    **kwargs,
-                )
-
-            chunks = text_splitter.split_documents(documents)
-            return chunks
-        except Exception as e:
-            raise Exception(f"Error in splitting text: {e}")
-
-    @staticmethod
     def scrape_web_text_and_split_by_character(
         urls: List[str],
         chunk_size: Optional[int] = 1000,
@@ -311,7 +254,7 @@ class AzureAIChunkIndexer:
     @staticmethod
     def read_and_load_pdf(
         pdf_path: Optional[str] = None, pdf_url: Optional[str] = None
-    ) -> Document:
+    ) -> Union[Document, List[Document]]:
         """
         Reads and loads a single PDF file from a given local path or a URL from Azure Blob Storage.
 
@@ -326,6 +269,9 @@ class AzureAIChunkIndexer:
         :param pdf_url: URL of the PDF file in Azure Blob Storage or a local file path.
         :return: A Document object containing the content of the PDF file.
         """
+        if pdf_path is None and pdf_url is None:
+            raise ValueError("Either 'pdf_path' or 'pdf_url' must be provided.")
+
         if pdf_path:
             # Convert relative path to absolute path
             pdf_path = os.path.abspath(pdf_path)
@@ -344,19 +290,9 @@ class AzureAIChunkIndexer:
                 container_name, file_name = get_container_and_blob_name_from_url(
                     pdf_url
                 )
-                az_manager = AzureBlobManager(container_name=container_name)
-
-                with NamedTemporaryFile(
-                    mode="wb", suffix=".pdf", delete=True
-                ) as temp_file:
-                    blob_client = az_manager.container_client.get_blob_client(file_name)
-                    download_stream = blob_client.download_blob()
-                    temp_file.write(download_stream.readall())
-                    print(temp_file.name)
-                    # Load the content of the PDF file
-                    loader = PyPDFLoader(temp_file.name)
-                    document = loader.load()
-                    return document
+                loader = AzureDocumentLoader(container_name=container_name)
+                documents = loader.load_files_from_blob(filenames=[file_name])
+                return documents
             else:
                 logger.info(f"Reading PDF file from {pdf_url}.")
 
