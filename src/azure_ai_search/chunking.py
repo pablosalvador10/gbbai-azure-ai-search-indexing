@@ -6,11 +6,16 @@ from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
 )
 
+from utils.ml_logging import get_logger
+
+# Initialize logging
+logger = get_logger()
+
 
 def get_splitter(
     use_recursive_splitter: bool,
-    chunk_size: int,
-    chunk_overlap: int,
+    chunk_size: int = 512,
+    chunk_overlap: int = 128,
     recursive_separators: Optional[List[str]] = None,
     char_separator: Optional[str] = "\n\n",
     keep_separator: bool = True,
@@ -30,23 +35,27 @@ def get_splitter(
     :param kwargs: Additional keyword arguments to pass to the splitter class.
     :return: An instance of either RecursiveCharacterTextSplitter or CharacterTextSplitter.
     """
-    if use_recursive_splitter:
-        return RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            separators=recursive_separators,
-            keep_separator=keep_separator,
-            is_separator_regex=is_separator_regex,
-            **kwargs,
-        )
-    else:
-        return CharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            separator=char_separator,
-            is_separator_regex=is_separator_regex,
-            **kwargs,
-        )
+    try:
+        if use_recursive_splitter:
+            return RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                separators=recursive_separators,
+                keep_separator=keep_separator,
+                is_separator_regex=is_separator_regex,
+                **kwargs,
+            )
+        else:
+            return CharacterTextSplitter(
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                separator=char_separator,
+                is_separator_regex=is_separator_regex,
+                **kwargs,
+            )
+    except Exception as e:
+        logger.error(f"Failed to get splitter: {e}")
+        raise
 
 
 def split_documents_in_chunks_from_documents(
@@ -85,10 +94,15 @@ def split_documents_in_chunks_from_documents(
             is_separator_regex,
             **kwargs,
         )
+        logger.info(f"Obtained splitter of type: {type(text_splitter).__name__}")
+
         chunks = text_splitter.split_documents(documents)
+        logger.info(f"Number of chunks obtained: {len(chunks)}")
+
         return chunks
     except Exception as e:
-        raise Exception(f"Error in splitting text: {e}")
+        logger.error(f"Error in splitting text: {e}")
+        raise
 
 
 def split_documents_in_chunks_from_text(
@@ -107,14 +121,22 @@ def split_documents_in_chunks_from_text(
     :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 200.
     :return: A list of Document objects, each with associated metadata.
     """
-    text_splitter = get_splitter(
-        use_recursive_splitter=False,
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        **kwargs,
-    )
-    docs = [
-        Document(page_content=chunk, metadata=metadata)
-        for chunk in text_splitter.split_text(text)
-    ]
-    return docs
+    try:
+        text_splitter = get_splitter(
+            use_recursive_splitter=False,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            **kwargs,
+        )
+        logger.info(f"Obtained splitter of type: {type(text_splitter).__name__}")
+
+        docs = [
+            Document(page_content=chunk, metadata=metadata)
+            for chunk in text_splitter.split_text(text)
+        ]
+        logger.info(f"Number of chunks obtained: {len(docs)}")
+
+        return docs
+    except Exception as e:
+        logger.error(f"Error in splitting text: {e}")
+        raise

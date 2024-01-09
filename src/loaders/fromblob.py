@@ -19,7 +19,7 @@ from langchain.document_loaders import (
     UnstructuredPowerPointLoader,
 )
 
-from src.extractors.blob_data_extractor import AzureBlobManager
+from src.helpers.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger
 
 # Initialize logger
@@ -83,18 +83,15 @@ class AzureDocumentLoader:
 
     @staticmethod
     def process_files_from_directory(
-        temp_dir: str, loader_kwargs: Optional[Dict[str, Dict[str, Any]]] = None
+        temp_dir: str, **loader_kwargs: Dict[str, Any]
     ) -> List[Document]:
         """
         Loads and processes files from a directory based on their file extension.
 
         :param temp_dir: Directory containing the files.
-        :param loader_kwargs: Optional dictionary of keyword arguments for the loaders.
+        :param loader_kwargs: Optional keyword arguments for the loaders.
         :return: List of processed documents.
         """
-        if loader_kwargs is None:
-            loader_kwargs = {}
-
         file_type_mappings = {
             "*.txt": TextLoader,
             "*.pdf": PyPDFLoader,
@@ -139,13 +136,13 @@ class AzureDocumentLoader:
     def load_files_from_blob(
         self,
         filenames: Optional[List[str]] = None,
-        loader_kwargs: Optional[Dict[str, Dict[str, Any]]] = None,
+        **kwargs: Dict[str, Any],
     ) -> List[Document]:
         """
         Downloads files from Azure Blob Storage, stores them temporarily, and processes them based on file extension.
 
         :param filenames: List of filenames to be downloaded from the blob.
-        :param loader_kwargs: Optional dictionary of keyword arguments for the loaders.
+        :param kwargs: Optional keyword arguments for the loaders.
         :return: Processed documents.
         """
         try:
@@ -154,7 +151,7 @@ class AzureDocumentLoader:
             temp_dir = os.path.dirname(
                 temp_files[0]
             )  # Get the directory from the first file path
-            docs = self.process_files_from_directory(temp_dir, loader_kwargs)
+            docs = self.process_files_from_directory(temp_dir, **kwargs)
             return docs
         except Exception as e:
             logger.error(f"Failed to load files from blob: {e}")

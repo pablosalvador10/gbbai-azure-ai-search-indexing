@@ -1,17 +1,16 @@
 import os
 from functools import lru_cache
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import nest_asyncio
 from dotenv import load_dotenv
-from langchain.docstore.document import Document
-from langchain.document_loaders import PyPDFLoader, WebBaseLoader
+from langchain.document_loaders import WebBaseLoader
 from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.azuresearch import AzureSearch
 
-from src.azure_ai_search.loaders import AzureDocumentLoader
-from src.azure_ai_search.utils import get_container_and_blob_name_from_url
+from src.azure_ai_search.chunking import split_documents_in_chunks_from_documents
+from src.extractors.pdf_data_extractor import read_and_load_pdf
 from utils.ml_logging import get_logger
 
 # Initialize logging
@@ -251,87 +250,55 @@ class AzureAIndexer:
             logger.error(f"Error in scraping and splitting text: {e}")
             raise
 
-    @staticmethod
-    def read_and_load_pdf(
-        pdf_path: Optional[str] = None, pdf_url: Optional[str] = None
-    ) -> Union[Document, List[Document]]:
-        """
-        Reads and loads a single PDF file from a given local path or a URL from Azure Blob Storage.
-
-        This function checks if a local path or a URL is provided.
-        If a local path is provided, it reads the file, loads its content, and returns a Document object.
-        If a URL is provided, it checks if it's a blob URL. If it is, it downloads the file from Azure Blob Storage,
-        reads it, loads its content, and returns a Document object.
-        If the URL does not contain "blob.core.windows.net", it treats it as a local file path and follows
-        the same logic as if a local path was provided.
-
-        :param pdf_path: Path to the local PDF file.
-        :param pdf_url: URL of the PDF file in Azure Blob Storage or a local file path.
-        :return: A Document object containing the content of the PDF file.
-        """
-        if pdf_path is None and pdf_url is None:
-            raise ValueError("Either 'pdf_path' or 'pdf_url' must be provided.")
-
-        if pdf_path:
-            # Convert relative path to absolute path
-            pdf_path = os.path.abspath(pdf_path)
-
-            logger.info(f"Reading PDF file from {pdf_path}.")
-
-            if pdf_path.endswith(".pdf"):
-                loader = PyPDFLoader(pdf_path)
-                document = loader.load()
-                return document
-            else:
-                raise ValueError("Invalid path. Path should be a .pdf file.")
-        elif pdf_url:
-            if "blob.core.windows.net" in pdf_url:
-                logger.info(f"Downloading and reading PDF file from {pdf_url}.")
-                container_name, file_name = get_container_and_blob_name_from_url(
-                    pdf_url
-                )
-                loader = AzureDocumentLoader(container_name=container_name)
-                documents = loader.load_files_from_blob(filenames=[file_name])
-                return documents
-            else:
-                logger.info(f"Reading PDF file from {pdf_url}.")
-
-                if pdf_url.endswith(".pdf"):
-                    loader = PyPDFLoader(pdf_url)
-                    document = loader.load()
-                    return document
-                else:
-                    raise ValueError("Invalid path. Path should be a .pdf file.")
-        else:
-            raise ValueError("Either a local path or a URL must be provided.")
-
-    def load_and_split_text_by_character_from_pdf(
+    def load_and_chunck_text_by_character_from_pdf(
         self,
-        source: Union[str, List[str]],
-        chunk_size: int = 1000,
-        chunk_overlap: int = 0,
+        pdf_path: Optional[str] = None,
+        pdf_url: Optional[str] = None,
+        chunk_size: Optional[int] = 1000,
+        chunk_overlap: Optional[int] = 200,
+        recursive_separators: Optional[List[str]] = None,
+        char_separator: Optional[str] = "\n\n",
+        keep_separator: bool = True,
+        is_separator_regex: bool = False,
+        use_recursive_splitter: bool = True,
         **kwargs,
     ) -> List[str]:
         """
-        Loads text from a file or a blob and splits it into chunks based on character count with additional customization.
+        Loads text from a PDF file or a URL and splits it into chunks based on character count with additional customization.
 
-        This function can handle text data from a specified file path or directly from a text blob.
+        This function can handle text data from a specified file path or directly from a URL.
         It then splits the loaded text into chunks of a specified size with a specified overlap using CharacterTextSplitter.
         Additional keyword arguments can be passed to the splitter for more customization.
 
-        :param source: Path to the file or a blob containing the text.
+        :param pdf_path: Path to the PDF file.
+        :param pdf_url: URL of the PDF file.
         :param chunk_size: (optional) The number of characters in each text chunk. Defaults to 1000.
-        :param chunk_overlap: (optional) The number of characters to overlap between chunks. Defaults to 0.
-        :param kwargs: Additional keyword arguments to pass to the CharacterTextSplitter.
+        :param chunk_overlap: (optional) The number of characters to overlap between chunks. Defaults to 200.
+        :param recursive_separators: List of strings or regex patterns to use as separators for splitting with RecursiveCharacterTextSplitter.
+        :param char_separator: String or regex pattern to use as a separator for splitting with CharacterTextSplitter.
+        :param keep_separator: Whether to keep the separators in the resulting chunks.
+        :param is_separator_regex: Treat the separators as regex patterns.
+        :param use_recursive_splitter: Boolean flag to choose between recursive or non-recursive splitter.
+        :param kwargs: Additional keyword arguments to pass to the splitter.
         :return: A list of text chunks.
         :raises Exception: If an error occurs during loading or splitting.
         """
         try:
-            documents = self.read_and_load_pdfs(source)
-            text_splitter = CharacterTextSplitter(
-                chunk_size=chunk_size, chunk_overlap=chunk_overlap, **kwargs
+            documents = read_and_load_pdf(pdf_path=pdf_path, pdf_url=pdf_url, **kwargs)
+            print(len(documents))
+            chunks = split_documents_in_chunks_from_documents(
+                documents=documents,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                recursive_separators=recursive_separators,
+                char_separator=char_separator,
+                keep_separator=keep_separator,
+                is_separator_regex=is_separator_regex,
+                use_recursive_splitter=use_recursive_splitter,
+                **kwargs,
             )
-            return text_splitter.split_documents(documents)
+            print(len(chunks))
+            return chunks
         except Exception as e:
             logger.error(f"Error in loading and splitting text: {e}")
             raise

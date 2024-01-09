@@ -1,6 +1,11 @@
-import io
+import os
+from typing import List, Optional, Union
 
-from PyPDF2 import PdfFileReader
+from langchain.docstore.document import Document
+from langchain.document_loaders import PyPDFLoader
+
+from src.extractors.utils import get_container_and_blob_name_from_url
+from src.loaders.fromblob import AzureDocumentLoader
 
 # load logging
 from utils.ml_logging import get_logger
@@ -8,93 +13,53 @@ from utils.ml_logging import get_logger
 logger = get_logger()
 
 
-class PDFHelper:
-    """This class facilitates the processing of PDF files.
-    It supports loading configuration from environment variables and provides methods for PDF text extraction.
+def read_and_load_pdf(
+    pdf_path: Optional[str] = None, pdf_url: Optional[str] = None, **kwargs
+) -> Union[Document, List[Document]]:
     """
+    Reads and loads a single PDF file from a given local path or a URL from Azure Blob Storage.
 
-    def __init__(self):
-        """
-        Initialize the PDFHelper class.
-        """
-        logger.info("PDFHelper initialized.")
+    This function checks if a local path or a URL is provided.
+    If a local path is provided, it reads the file, loads its content, and returns a Document object.
+    If a URL is provided, it checks if it's a blob URL. If it is, it downloads the file from Azure Blob Storage,
+    reads it, loads its content, and returns a Document object.
+    If the URL does not contain "blob.core.windows.net", it treats it as a local file path and follows
+    the same logic as if a local path was provided.
 
-    def extract_text_from_pdf_bytes(self, pdf_bytes: bytes) -> str:
-        """
-        Extracts text from a PDF file provided as a bytes object.
-        :param pdf_bytes: Bytes object containing the PDF file data.
-        :return: Extracted text from the PDF as a string, or None if extraction fails.
-        """
-        try:
-            with io.BytesIO(pdf_bytes) as pdf_stream:
-                return self._extract_text_from_pdf(pdf_stream)
-        except Exception as e:
-            logger.error(
-                f"An unexpected error occurred during PDF text extraction: {e}"
-            )
-            return ""
+    :param pdf_path: Path to the local PDF file.
+    :param pdf_url: URL of the PDF file in Azure Blob Storage or a local file path.
+    :return: A Document object containing the content of the PDF file.
+    """
+    if pdf_path is None and pdf_url is None:
+        raise ValueError("Either 'pdf_path' or 'pdf_url' must be provided.")
 
-    def extract_text_from_pdf_file(self, file_path: str) -> str:
-        """
-        Extracts text from a PDF file located at the given file path.
-        :param file_path: Path to the PDF file.
-        :return: Extracted text from the PDF as a string, or None if extraction fails.
-        """
-        try:
-            with open(file_path, "rb") as file:
-                return self._extract_text_from_pdf(file)
-        except Exception as e:
-            logger.error(f"An unexpected error occurred when opening the PDF file: {e}")
-            return ""
+    if pdf_path:
+        # Convert relative path to absolute path
+        pdf_path = os.path.abspath(pdf_path)
 
-    def _extract_text_from_pdf(self, file_stream) -> str:
-        """
-        Helper method to extract text from a PDF file stream.
-        :param file_stream: File stream of the PDF file.
-        :return: Extracted text from the PDF as a string, or None if extraction fails.
-        """
-        try:
-            pdf_reader = PdfFileReader(file_stream)
-            text = []
-            for page_num in range(pdf_reader.getNumPages()):
-                page = pdf_reader.getPage(page_num)
-                text.append(page.extractText())
+        logger.info(f"Reading PDF file from {pdf_path}.")
 
-            extracted_text = "\n".join(text)
-            logger.info("Text extraction from PDF was successful.")
-            return extracted_text
-        except Exception as e:
-            logger.error(
-                f"An unexpected error occurred during PDF text extraction: {e}"
-            )
-            return ""
+        if pdf_path.endswith(".pdf"):
+            loader = PyPDFLoader(pdf_path, **kwargs)
+            document = loader.load()
+            return document
+        else:
+            raise ValueError("Invalid path. Path should be a .pdf file.")
+    elif pdf_url:
+        if "blob.core.windows.net" in pdf_url:
+            logger.info(f"Downloading and reading PDF file from {pdf_url}.")
+            container_name, file_name = get_container_and_blob_name_from_url(pdf_url)
+            loader = AzureDocumentLoader(container_name=container_name)
+            documents = loader.load_files_from_blob(filenames=[file_name], **kwargs)
+            return documents
+        else:
+            logger.info(f"Reading PDF file from {pdf_url}.")
 
-    def extract_metadata_from_pdf_bytes(self, pdf_bytes: bytes) -> dict:
-        """
-        Extracts metadata from a PDF file provided as a bytes object.
-
-        :param pdf_bytes: Bytes object containing the PDF file data.
-        :return: A dictionary containing the extracted metadata, or None if extraction fails.
-        """
-        try:
-            with io.BytesIO(pdf_bytes) as pdf_stream:
-                pdf = PdfFileReader(pdf_stream)
-                information = pdf.getDocumentInfo()
-                number_of_pages = pdf.getNumPages()
-
-                metadata = {
-                    "Author": information.author,
-                    "Creator": information.creator,
-                    "Producer": information.producer,
-                    "Subject": information.subject,
-                    "Title": information.title,
-                    "Number of pages": number_of_pages,
-                }
-
-                logger.info("Metadata extraction from PDF bytes was successful.")
-                return metadata
-        except Exception as e:
-            logger.error(
-                f"An unexpected error occurred during PDF metadata extraction: {e}"
-            )
-            return {}
+            if pdf_url.endswith(".pdf"):
+                loader = PyPDFLoader(pdf_url, **kwargs)
+                document = loader.load()
+                return document
+            else:
+                raise ValueError("Invalid path. Path should be a .pdf file.")
+    else:
+        raise ValueError("Either a local path or a URL must be provided.")
