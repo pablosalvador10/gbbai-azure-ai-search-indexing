@@ -12,4 +12,5 @@ python-docx
 python-dotenv
 requests>=2,<3
 tiktoken
+spacy
 azure-ai-formrecognizer

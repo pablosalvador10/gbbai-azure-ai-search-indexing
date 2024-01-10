@@ -64,46 +64,14 @@ gbb_ai_indexer = TextChunkingIndexing()
 gbb_ai_indexer.load_environment_variables_from_env_file()
 ```
 
-## ❗Prerequisites
+## 🔧 Prerequisites
 
-#### Setting Up Your Azure Services
+Please make sure you have met all the prerequisites for this project. A detailed guide on how to set up your environment and get ready to run all the notebooks and code in this repository can be found in the [REQUIREMENTS.md](REQUIREMENTS.md) file. Please follow the instructions there to ensure a smooth exprience.
 
-- **Azure AI search**: Delivering Deliver accurate, hyper-personalized responses in your Gen AI applications [start here](https://azure.microsoft.com/en-us/products/ai-services/ai-search/)
-- **Azure Open AI Services**: To effectively vectorize data, we leverage the `ada` model within Azure OpenAI Services. This model, part of the suite of large language and generative AI models, is specifically designed for tasks that require nuanced understanding and processing of complex data. By utilizing `ada`, we can transform and represent diverse datasets in a vectorized format. [start here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-openai-service-launches-gpt-4-turbo-and-gpt-3-5-turbo-1106/ba-p/3985962)
+## 💼 Contributing:
 
-#### Configuring Your Environment Variables
+Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)** guide is your essential resource! It lays out a clear path.
 
-We use the `.env` file to securely store and manage sensitive configuration data such as API keys, database credentials, and other environment-specific settings. This data is then loaded into the environment at runtime, making it accessible to our application without exposing it in the code or version control. This approach not only enhances security but also provides flexibility, as you can easily change the configuration for different environments (e.g., development, testing, production) by simply updating the `.env` file.
-
-```plaintext
-OPENAI_API_KEY=****
-OPENAI_ENDPOINT=****
-AZURE_OPENAI_API_VERSION=****
-AZURE_SEARCH_SERVICE_ENDPOINT=****
-AZURE_SEARCH_ADMIN_KEY=****
-```
-
-#### 🐍 Create Conda Environment
-
-Reproducibility is crucial for consistency across environments and ease of collaboration. We use Conda environments to manage dependencies and ensure uniform functionality across different environments. The `requirements.txt` file can be used in your Docker for deployment, ensuring a 1:1 mapping between development and production environments.
-
-In this project, we utilize `make` to automate the execution of scripts, significantly streamlining the development process.
-
-##### Automation with `make`
-
-`make` is a powerful build automation tool traditionally used in software development for automating the compilation of executable programs and libraries. It works by reading files called `Makefiles` which define how to derive the target program.
-
-```bash
-make create_conda_env
-```
-
-For Windows users, if `make` is not available, you can leverage Conda's built-in commands to create and activate the environment. The `environment.yaml` file in this project contains the necessary configuration to set up your Conda environment.
-
-To create the environment, use the following command in your command prompt:
-
-```bash
-conda env create -f environment.yaml
-```
 
 ## 🌲 Project Tree Structure
 
@@ -126,7 +94,3 @@ conda env create -f environment.yaml
 ┣ 📜 requirements-codequality.txt <- Requirements for code quality tools and libraries.
 ┣ 📜 requirements.txt <- General project dependencies.
 ```
-
-## 💼 Contributing:
-
-Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)** guide is your essential resource! It lays out a clear path.
