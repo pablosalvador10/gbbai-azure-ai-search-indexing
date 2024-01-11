@@ -9,7 +9,7 @@ from langchain.text_splitter import (
     TokenTextSplitter,
 )
 
-from src.azure_ai_search.settings import encoding_name_for_model
+from src.settings import encoding_name_for_model
 from utils.ml_logging import get_logger
 
 # Initialize logging

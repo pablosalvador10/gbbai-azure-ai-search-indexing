@@ -9,7 +9,7 @@ from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.azuresearch import AzureSearch
 
-from src.azure_ai_search.chunking import split_documents_in_chunks_from_documents
+from src.chunking import split_documents_in_chunks_from_documents
 from src.extractors.pdf_data_extractor import read_and_load_pdf
 from utils.ml_logging import get_logger
 

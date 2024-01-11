@@ -1,19 +1,15 @@
 # <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Azure AI Search: Vectorize and Index Your Data from Multiple Sources and Formats
 
-This repository offers an efficient solution for rapidly indexing data from various sources into Azure AI Search in a vectorized manner. By making the vectorization process straightforward, it allows you to leverage the sophisticated search capabilities of Azure AI Search (Hybrid + Rerank) to the fullest. This not only boosts your retrieval scores but also accelerates the optimization phase in your Retrieval Augmented Generation (RAG) development stage.
+This repository offers a detailed, step-by-step guide for vectorizing, chunking, and loading data from a variety of sources and formats into Azure AI Search.
 
-## Table of Contents
+<p align="center">
+    <img src="utils/images/indexing2.png" alt="Indexing_lifecycle" width="950">
+</p>
 
-- [Indexing your vectorized data from multiple sources](#indexing-your-vectorized-data-from-multiple-sources)
-    - [Understanding Challenges Indexing into Azure AI Search with LLMs](#understanding-challenges-indexing-into-azure-ai-search-with-llms)
-    - [Solution](#solution)
-    - [Getting Started with `TextChunkingIndexing`](#getting-started-with-textchunkingindexing)
-- [Prerequisites](#prerequisites)
-    - [Setting Up Your Azure Services](#setting-up-your-azure-services)
-    - [Configuring Your Environment Variables](#configuring-your-environment-variables)
-    - [Create Conda Environment](#create-conda-environment)
-- [Project Tree Structure](#project-tree-structure)
-- [Contributing](#contributing)
+
+## 🚀 Approach
+
+In the realm of generative AI, the search component is crucial yet often misunderstood. A grounding strategy becomes key to offering great responses to user queries. Azure AI Search offers advanced, out-of-the-box, state-of-the-art search capabilities, making it a great option for those searching for high relevance. However, achieving enhanced relevance in your Ge AI app is a dynamic process. I've simplified it into five key steps, each accompanied by a notebook filled with examples for a straightforward start. The provided code is designed to be adaptable, supporting addition of sources and formats.
 
 ## 🔍 Understanding Challenges Indexing into Azure AI Search with LLMs
 
@@ -33,7 +29,9 @@ Fragmentation is a notable issue when indexing large documents, especially in co
 >
 > Adjusting chunk sizes and overlaps is vital for high-quality text retrieval, especially in precision-based search applications like RAGs. Learn more about fine-tuning and relevance scores [here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-cognitive-search-outperforming-vector-search-with-hybrid/ba-p/3929167).
 
-## 🚀 Solution
+## 🚀 Approach
+
+The streamlined vectorization process enhances the utilization of Azure AI Search's advanced out-of-the-box search capabilities (Hybrid + Rerank), thereby improving your retrieval scores during searches. Moreover, it significantly accelerates the optimization and iteration phases in your Retrieval Augmented Generation (RAG) development stage, making these highly iterative processes more efficient.
 
 The primary goal of this project is to facilitate a smooth integration between multiple data sources and formats and Azure AI Search Index. To achieve this, we've introduced a class named `TextChunkingIndexing`, located in the `src/gbb_ai/text_chunking_indexing.py` module. This class is designed to simplify and optimize the process of text chunking and indexing, overcoming common challenges in the process.
 
