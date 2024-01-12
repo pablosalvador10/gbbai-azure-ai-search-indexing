@@ -1,16 +1,17 @@
 import os
 from functools import lru_cache
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import nest_asyncio
 from dotenv import load_dotenv
+from langchain.docstore.document import Document
 from langchain.document_loaders import WebBaseLoader
 from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.azuresearch import AzureSearch
 
-from src.chunking import split_documents_in_chunks_from_documents
-from src.extractors.pdf_data_extractor import read_and_load_pdf
+from src.chunkers.chunking import split_documents_in_chunks_from_documents
+from src.loaders.loading import DocumentLoaders
 from utils.ml_logging import get_logger
 
 # Initialize logging
@@ -64,6 +65,8 @@ class AzureAIndexer:
             )
         if index_name:
             _ = self.load_azureai_index()
+
+        self.loader_client = DocumentLoaders(container_name=None)
 
     @lru_cache(maxsize=1)
     def load_environment_variables_from_env_file(self):
@@ -250,41 +253,47 @@ class AzureAIndexer:
             logger.error(f"Error in scraping and splitting text: {e}")
             raise
 
-    def load_and_chunck_text_by_character_from_pdf(
+    def load_and_chunck_files(
         self,
-        pdf_path: Optional[str] = None,
-        pdf_url: Optional[str] = None,
-        chunk_size: Optional[int] = 1000,
-        chunk_overlap: Optional[int] = 200,
+        file_paths: Optional[Union[str, List[str]]] = None,
+        splitter_type: str = "recursive",
+        use_encoder: bool = True,
+        chunk_size: int = 512,
+        chunk_overlap: int = 128,
         recursive_separators: Optional[List[str]] = None,
         char_separator: Optional[str] = "\n\n",
         keep_separator: bool = True,
         is_separator_regex: bool = False,
-        use_recursive_splitter: bool = True,
+        model_name: Optional[str] = "gpt-4",
+        verbose: bool = False,
         **kwargs,
-    ) -> List[str]:
+    ) -> List[Document]:
         """
-        Loads text from a PDF file or a URL and splits it into chunks based on character count with additional customization.
+        Loads text from a file or a URL and splits it into chunks based on character count with additional customization.
 
         This function can handle text data from a specified file path or directly from a URL.
-        It then splits the loaded text into chunks of a specified size with a specified overlap using CharacterTextSplitter.
+        It then splits the loaded text into chunks of a specified size with a specified overlap using the specified splitter.
         Additional keyword arguments can be passed to the splitter for more customization.
 
-        :param pdf_path: Path to the PDF file.
-        :param pdf_url: URL of the PDF file.
-        :param chunk_size: (optional) The number of characters in each text chunk. Defaults to 1000.
-        :param chunk_overlap: (optional) The number of characters to overlap between chunks. Defaults to 200.
+        :param file_paths: Path or list of paths of the files to be processed.
+        :param file_urls: URL or list of URLs of the files to be processed.
+        :param splitter_type: The type of splitter to use. Can be "recursive", "tiktoken", "spacy", or "character".
+          If not found, the character splitter will be selected. Defaults to "recursive".
+        :param use_encoder: Boolean flag to choose whether to use an encoder for the splitter. Defaults to True.
+        :param chunk_size: The number of characters in each text chunk. Defaults to 512.
+        :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 128.
         :param recursive_separators: List of strings or regex patterns to use as separators for splitting with RecursiveCharacterTextSplitter.
         :param char_separator: String or regex pattern to use as a separator for splitting with CharacterTextSplitter.
-        :param keep_separator: Whether to keep the separators in the resulting chunks.
-        :param is_separator_regex: Treat the separators as regex patterns.
-        :param use_recursive_splitter: Boolean flag to choose between recursive or non-recursive splitter.
+        :param keep_separator: Whether to keep the separators in the resulting chunks. Defaults to True.
+        :param is_separator_regex: Treat the separators as regex patterns. Defaults to False.
+        :param model_name: The name of the model to use for encoding, if use_encoder is True. Defaults to "gpt-4".
+        :param verbose: Boolean flag to enable verbose logging. Defaults to False.
         :param kwargs: Additional keyword arguments to pass to the splitter.
-        :return: A list of text chunks.
+        :return: A list of Document objects, each with associated metadata.
         :raises Exception: If an error occurs during loading or splitting.
         """
         try:
-            documents = read_and_load_pdf(pdf_path=pdf_path, pdf_url=pdf_url, **kwargs)
+            documents = self.loader_client.load_files(file_paths=file_paths, **kwargs)
             print(len(documents))
             chunks = split_documents_in_chunks_from_documents(
                 documents=documents,
@@ -294,7 +303,10 @@ class AzureAIndexer:
                 char_separator=char_separator,
                 keep_separator=keep_separator,
                 is_separator_regex=is_separator_regex,
-                use_recursive_splitter=use_recursive_splitter,
+                splitter_type=splitter_type,
+                use_encoder=use_encoder,
+                model_name=model_name,
+                verbose=verbose,
                 **kwargs,
             )
             print(len(chunks))

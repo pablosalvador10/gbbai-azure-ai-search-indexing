@@ -1,3 +1,36 @@
+import fnmatch
+import re
+
+# Import necessary loader classes
+from langchain.document_loaders import (
+    CSVLoader,
+    Docx2txtLoader,
+    JSONLoader,
+    PyPDFLoader,
+    TextLoader,
+    UnstructuredExcelLoader,
+    UnstructuredHTMLLoader,
+    UnstructuredMarkdownLoader,
+    UnstructuredPowerPointLoader,
+)
+
+FILE_TYPE_MAPPINGS_LANGCHAIN = {
+    re.compile(fnmatch.translate(pattern)): loader_class
+    for pattern, loader_class in {
+        "*.txt": TextLoader,
+        "*.pdf": PyPDFLoader,
+        "*.csv": CSVLoader,
+        "*.docx": Docx2txtLoader,
+        "*.xlss": UnstructuredExcelLoader,
+        "*.xlsx": UnstructuredExcelLoader,
+        "*.html": UnstructuredHTMLLoader,
+        "*.pptx": UnstructuredPowerPointLoader,
+        "*.ppt": UnstructuredPowerPointLoader,
+        "*.md": UnstructuredMarkdownLoader,
+        "*.json": JSONLoader,
+    }.items()
+}
+
 MODEL_PREFIX_TO_ENCODING: dict[str, str] = {
     # chat
     "gpt-4-": "cl100k_base",  # e.g., gpt-4-0314, etc., plus gpt-4-32k

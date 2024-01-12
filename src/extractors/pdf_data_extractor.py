@@ -5,7 +5,7 @@ from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader
 
 from src.extractors.utils import get_container_and_blob_name_from_url
-from src.loaders.fromblob import AzureDocumentLoader
+from src.loaders.loading import AzureDocumentLoader
 
 # load logging
 from utils.ml_logging import get_logger
@@ -13,7 +13,7 @@ from utils.ml_logging import get_logger
 logger = get_logger()
 
 
-def read_and_load_pdf(
+def read_and_load(
     pdf_path: Optional[str] = None, pdf_url: Optional[str] = None, **kwargs
 ) -> Union[Document, List[Document]]:
     """

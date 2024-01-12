@@ -14,3 +14,4 @@ requests>=2,<3
 tiktoken
 spacy
 azure-ai-formrecognizer
+docx2txt
