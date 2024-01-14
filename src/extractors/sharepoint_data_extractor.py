@@ -1,13 +1,11 @@
-import io
 import os
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from typing import Any, Dict, List, Optional, Union
 
 import msal
 import requests
-from docx import Document as DocxDocument
 from dotenv import load_dotenv
-from gbb_ai.pdf_utils import extract_text_from_pdf_bytes
 
 # load logging
 from utils.ml_logging import get_logger
@@ -47,6 +45,7 @@ class SharePointDataExtractor:
         self.scope = ["https://graph.microsoft.com/.default"]
         self.access_token = None
 
+    @lru_cache(maxsize=30)
     def load_environment_variables_from_env_file(self):
         """
         Loads required environment variables for the application from a .env file.
@@ -87,6 +86,7 @@ class SharePointDataExtractor:
                 f"Successfully loaded environment variables: {', '.join(loaded_vars)}"
             )
 
+    @lru_cache(maxsize=30)
     def msgraph_auth(
         self,
         client_id: Optional[str] = None,
@@ -387,76 +387,76 @@ class SharePointDataExtractor:
             logger.error(f"Request error: {req_err}")
             return None
 
-    def process_and_retrieve_docx_content(
-        self,
-        site_id: str,
-        drive_id: str,
-        folder_path: Optional[str],
-        file_name: str,
-        access_token: Optional[str] = None,
-    ) -> Optional[str]:
-        """
-        Process the content of a .docx file and extract its text.
+    # def process_and_retrieve_docx_content(
+    #     self,
+    #     site_id: str,
+    #     drive_id: str,
+    #     folder_path: Optional[str],
+    #     file_name: str,
+    #     access_token: Optional[str] = None,
+    # ) -> Optional[str]:
+    #     """
+    #     Process the content of a .docx file and extract its text.
 
-        :param site_id: The site ID in Microsoft Graph.
-        :param drive_id: The drive ID in Microsoft Graph.
-        :param folder_path: Path to the folder within the drive, can include subfolders.
-        :param file_name: The name of the .docx file.
-        :param access_token: The access token for Microsoft Graph API authentication.
-        :return: Text content of the .docx file or None if there's an error.
-        """
-        file_bytes = self.get_file_content_bytes(
-            site_id, drive_id, folder_path, file_name, access_token
-        )
-        if file_bytes is None:
-            return None
+    #     :param site_id: The site ID in Microsoft Graph.
+    #     :param drive_id: The drive ID in Microsoft Graph.
+    #     :param folder_path: Path to the folder within the drive, can include subfolders.
+    #     :param file_name: The name of the .docx file.
+    #     :param access_token: The access token for Microsoft Graph API authentication.
+    #     :return: Text content of the .docx file or None if there's an error.
+    #     """
+    #     file_bytes = self.get_file_content_bytes(
+    #         site_id, drive_id, folder_path, file_name, access_token
+    #     )
+    #     if file_bytes is None:
+    #         return None
 
-        if not file_name.endswith(".docx"):
-            logger.error(f"File {file_name} is not a .docx file.")
-            return None
+    #     if not file_name.endswith(".docx"):
+    #         logger.error(f"File {file_name} is not a .docx file.")
+    #         return None
 
-        try:
-            document = DocxDocument(io.BytesIO(file_bytes))
-            return "\n".join([paragraph.text for paragraph in document.paragraphs])
-        except Exception as err:
-            logger.error(f"Error processing document: {err}")
-            return None
+    #     try:
+    #         document = DocxDocument(io.BytesIO(file_bytes))
+    #         return "\n".join([paragraph.text for paragraph in document.paragraphs])
+    #     except Exception as err:
+    #         logger.error(f"Error processing document: {err}")
+    #         return None
 
-    def process_and_retrieve_pdf_content(
-        self,
-        site_id: str,
-        drive_id: str,
-        folder_path: Optional[str],
-        file_name: str,
-        access_token: Optional[str] = None,
-    ) -> Optional[str]:
-        """
-        Process the content of a .docx file and extract its text.
+    # def process_and_retrieve_pdf_content(
+    #     self,
+    #     site_id: str,
+    #     drive_id: str,
+    #     folder_path: Optional[str],
+    #     file_name: str,
+    #     access_token: Optional[str] = None,
+    # ) -> Optional[str]:
+    #     """
+    #     Process the content of a .docx file and extract its text.
 
-        :param site_id: The site ID in Microsoft Graph.
-        :param drive_id: The drive ID in Microsoft Graph.
-        :param folder_path: Path to the folder within the drive, can include subfolders.
-        :param file_name: The name of the .docx file.
-        :param specific_file: Specific .docx file name, if different from file_name.
-        :param access_token: The access token for Microsoft Graph API authentication.
-        :return: Text content of the .docx file or None if there's an error.
-        """
-        file_bytes = self.get_file_content_bytes(
-            site_id, drive_id, folder_path, file_name, access_token
-        )
-        if file_bytes is None:
-            return None
+    #     :param site_id: The site ID in Microsoft Graph.
+    #     :param drive_id: The drive ID in Microsoft Graph.
+    #     :param folder_path: Path to the folder within the drive, can include subfolders.
+    #     :param file_name: The name of the .docx file.
+    #     :param specific_file: Specific .docx file name, if different from file_name.
+    #     :param access_token: The access token for Microsoft Graph API authentication.
+    #     :return: Text content of the .docx file or None if there's an error.
+    #     """
+    #     file_bytes = self.get_file_content_bytes(
+    #         site_id, drive_id, folder_path, file_name, access_token
+    #     )
+    #     if file_bytes is None:
+    #         return None
 
-        if not file_name.endswith(".pdf"):
-            logger.error(f"File {file_name} is not a .pdf file.")
-            return None
+    #     if not file_name.endswith(".pdf"):
+    #         logger.error(f"File {file_name} is not a .pdf file.")
+    #         return None
 
-        try:
-            document = extract_text_from_pdf_bytes(file_bytes)
-            return document
-        except Exception as err:
-            logger.error(f"Error processing document: {err}")
-            return None
+    #     try:
+    #         document = extract_text_from_pdf_bytes(file_bytes)
+    #         return document
+    #     except Exception as err:
+    #         logger.error(f"Error processing document: {err}")
+    #         return None
 
     @staticmethod
     def _extract_file_metadata(
@@ -530,7 +530,7 @@ class SharePointDataExtractor:
         if not site_id or not drive_id:
             return None
 
-        files = self._get_files(
+        files = self.get_files_in_site(
             site_id, drive_id, folder_path, minutes_ago, file_formats
         )
         if not files:
@@ -588,34 +588,6 @@ class SharePointDataExtractor:
             return None, None
 
         return site_id, drive_id
-
-    def _get_files(
-        self,
-        site_id: str,
-        drive_id: str,
-        folder_path: Optional[str],
-        minutes_ago: Optional[int],
-        file_formats: Optional[List[str]],
-    ) -> List[Dict]:
-        """
-        Retrieves the files in a site drive.
-
-        :param site_id: The site ID in Microsoft Graph.
-        :param drive_id: The drive ID in Microsoft Graph.
-        :param folder_path: Optional path to the folder within the drive, can include subfolders.
-        :param minutes_ago: Optional integer to filter files created or updated within the specified number of minutes from now.
-        :param file_formats: List of desired file formats.
-        :param specific_file: Optional specific file to retrieve.
-        :return: A list of file details.
-        """
-        files = self.get_files_in_site(
-            site_id=site_id,
-            drive_id=drive_id,
-            folder_path=folder_path,
-            minutes_ago=minutes_ago,
-            file_formats=file_formats,
-        )
-        return files
 
     def _process_files(
         self,

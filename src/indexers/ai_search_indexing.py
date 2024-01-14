@@ -253,7 +253,7 @@ class AzureAIndexer:
             logger.error(f"Error in scraping and splitting text: {e}")
             raise
 
-    def load_and_chunck_files(
+    def load_files_and_split_into_chunks(
         self,
         file_paths: Optional[Union[str, List[str]]] = None,
         splitter_type: str = "recursive",
@@ -269,16 +269,18 @@ class AzureAIndexer:
         **kwargs,
     ) -> List[Document]:
         """
-        Loads text from a file or a URL and splits it into chunks based on character count with additional customization.
+        Loads text from a file or a URL and splits it into manageable chunks based on character count with additional customization.
 
         This function can handle text data from a specified file path or directly from a URL.
         It then splits the loaded text into chunks of a specified size with a specified overlap using the specified splitter.
         Additional keyword arguments can be passed to the splitter for more customization.
 
+        The method can use either RecursiveCharacterTextSplitter, TokenTextSplitter, SpacyTextSplitter,
+        or CharacterTextSplitter based on the splitter_type.
+
         :param file_paths: Path or list of paths of the files to be processed.
-        :param file_urls: URL or list of URLs of the files to be processed.
         :param splitter_type: The type of splitter to use. Can be "recursive", "tiktoken", "spacy", or "character".
-          If not found, the character splitter will be selected. Defaults to "recursive".
+                              If not found, the character splitter will be selected. Defaults to "recursive".
         :param use_encoder: Boolean flag to choose whether to use an encoder for the splitter. Defaults to True.
         :param chunk_size: The number of characters in each text chunk. Defaults to 512.
         :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 128.
@@ -291,10 +293,17 @@ class AzureAIndexer:
         :param kwargs: Additional keyword arguments to pass to the splitter.
         :return: A list of Document objects, each with associated metadata.
         :raises Exception: If an error occurs during loading or splitting.
+
+        The function first loads the documents from the specified file paths using the load_files method of the loader_client.
+        Then, it splits the documents into chunks using the split_documents_in_chunks_from_documents function.
+        The type of splitter used depends on the splitter_type parameter.
+        The size of the chunks and the overlap between them can be customized with the chunk_size and chunk_overlap parameters.
+        The separators used for splitting can also be customized with the recursive_separators and char_separator parameters.
+        If use_encoder is True, the function uses an encoder for splitting, and the model used for encoding can be
+          specified with the model_name parameter.
         """
         try:
             documents = self.loader_client.load_files(file_paths=file_paths, **kwargs)
-            print(len(documents))
             chunks = split_documents_in_chunks_from_documents(
                 documents=documents,
                 chunk_size=chunk_size,
@@ -309,36 +318,122 @@ class AzureAIndexer:
                 verbose=verbose,
                 **kwargs,
             )
-            print(len(chunks))
             return chunks
         except Exception as e:
             logger.error(f"Error in loading and splitting text: {e}")
             raise
 
-    def embed_and_index(self, texts: List[str]) -> None:
+    def load_files_and_split_into_chunks_from_sharepoint(
+        self,
+        site_name: str,
+        site_domain: str,
+        file_names: Union[str, List[str]],
+        splitter_type: str = "recursive",
+        use_encoder: bool = True,
+        chunk_size: int = 512,
+        chunk_overlap: int = 128,
+        recursive_separators: Optional[List[str]] = None,
+        char_separator: Optional[str] = "\n\n",
+        keep_separator: bool = True,
+        is_separator_regex: bool = False,
+        model_name: Optional[str] = "gpt-4",
+        verbose: bool = False,
+        **kwargs,
+    ) -> List[Document]:
         """
-        Embeds the given texts and indexes them in the configured vector store.
+        Loads text from SharePoint and splits it into manageable chunks based on character count with additional customization.
 
-        This method first checks if the vector store (like Azure AI Search) is configured.
+        :param file_names: Name or list of names of the files to be processed.
+        :param site_name: Name of the SharePoint site where the files are located.
+        :param site_domain: Domain of the SharePoint site where the files are located.
+        :param splitter_type: The type of splitter to use. Can be "recursive", "tiktoken", "spacy", or "character".
+                            If not found, the character splitter will be selected. Defaults to "recursive".
+        :param use_encoder: Boolean flag to choose whether to use an encoder for the splitter. Defaults to True.
+        :param chunk_size: The number of characters in each text chunk. Defaults to 512.
+        :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 128.
+        :param recursive_separators: List of strings or regex patterns to use as separators for splitting with RecursiveCharacterTextSplitter.
+        :param char_separator: String or regex pattern to use as a separator for splitting with CharacterTextSplitter.
+        :param keep_separator: Whether to keep the separators in the resulting chunks. Defaults to True.
+        :param is_separator_regex: Treat the separators as regex patterns. Defaults to False.
+        :param model_name: The name of the model to use for encoding, if use_encoder is True. Defaults to "gpt-4".
+        :param verbose: Boolean flag to enable verbose logging. Defaults to False.
+        :param kwargs: Additional keyword arguments to pass to the splitter.
+        :return: A list of Document objects, each with associated metadata.
+        :raises Exception: If an error occurs during loading or splitting.
+        """
+        if isinstance(file_names, str):
+            file_names = [file_names]
+
+        documents = []
+        for file_name in file_names:
+            try:
+                docs = self.loader_client.load_file_from_sharepoint(
+                    file_name=file_name,
+                    site_domain=site_domain,
+                    site_name=site_name,
+                    **kwargs,
+                )
+                if docs:
+                    documents += docs
+                else:
+                    logger.warning(f"No documents were loaded from file {file_name}.")
+            except Exception as e:
+                logger.error(f"Error loading file {file_name}: {e}")
+
+        if not documents:
+            logger.error("No documents were loaded.")
+            return []
+
+        try:
+            chunks = split_documents_in_chunks_from_documents(
+                documents=documents,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
+                recursive_separators=recursive_separators,
+                char_separator=char_separator,
+                keep_separator=keep_separator,
+                is_separator_regex=is_separator_regex,
+                splitter_type=splitter_type,
+                use_encoder=use_encoder,
+                model_name=model_name,
+                verbose=verbose,
+                **kwargs,
+            )
+            return chunks
+        except Exception as e:
+            logger.error(f"Error in splitting documents into chunks: {e}")
+            raise
+
+    def index_text_embeddings(self, text_list: List[str]) -> None:
+        """
+        Generates embeddings for the given texts and indexes them in the configured vector store.
+
+        This method first verifies if the vector store (like Azure AI Search) is configured.
         If configured, it proceeds to add the provided texts to the vector store for indexing.
 
         Args:
-            texts (List[str]): A list of text strings to be embedded and indexed.
+            text_list (List[str]): A list of text strings for which embeddings are to be generated and indexed.
 
         Raises:
             ValueError: If the vector store client is not configured.
-            Exception: If any other error occurs during the embedding and indexing process.
+            Exception: If any other error occurs during the embedding generation and indexing process.
         """
         try:
             if not self.vector_store:
-                raise ValueError("Azure AI Search client has not been configured.")
+                raise ValueError("Vector store client is not configured.")
 
-            logger.info(f"Starting to embed and index {len(texts)} chuncks.")
-            self.vector_store.add_documents(documents=texts)
-            logger.info(f"Successfully embedded and indexed {len(texts)} chuncks.")
+            logger.info(
+                f"Embedding and indexing initiated for {len(text_list)} text chunks."
+            )
+            self.vector_store.add_documents(documents=text_list)
+            logger.info(
+                f"Embedding and indexing completed for {len(text_list)} text chunks."
+            )
         except ValueError as ve:
-            logger.error(f"ValueError in embedding and indexing: {ve}")
+            logger.error(f"ValueError occurred during embedding and indexing: {ve}")
             raise
         except Exception as e:
-            logger.error(f"Unexpected error in embedding and indexing: {e}")
+            logger.error(
+                f"Unexpected error occurred during embedding and indexing: {e}"
+            )
             raise

@@ -12,7 +12,7 @@ from utils.ml_logging import get_logger
 logger = get_logger()
 
 
-class AzureBlobManager:
+class AzureBlobDataExtractor:
     """
     Class for managing interactions with Azure Blob Storage. It provides functionalities
     to read and write data to blobs, especially focused on handling various file formats.
@@ -64,25 +64,6 @@ class AzureBlobManager:
             new_container_name
         )
         logger.info(f"Container changed to {new_container_name}")
-
-
-class AzureDocumentLoader(AzureBlobManager):
-    def __init__(self, container_name: str):
-        """
-        The AzureDocumentLoader class extends the AzureBlobManager class and provides functionality
-        for downloading and managing documents stored in an Azure Blob Storage container.
-
-        This class can download multiple blob files from a specified container, and write the downloaded
-        blob data to temporary files. This is particularly useful when working with large datasets
-        that are stored in Azure Blob Storage.
-
-        :param container_name: Name of the Azure Blob Storage container.
-        """
-        try:
-            super().__init__(container_name=container_name)
-        except Exception as e:
-            logger.error(f"Failed to create blob container client: {e}")
-            raise
 
     def download_blob_files(self, filenames: List[str]) -> List[BytesIO]:
         """
