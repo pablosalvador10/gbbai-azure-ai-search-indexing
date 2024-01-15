@@ -10,8 +10,9 @@ from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.azuresearch import AzureSearch
 
-from src.chunkers.chunking import split_documents_in_chunks_from_documents
-from src.loaders.loading import DocumentLoaders
+from src.chunkers.by_character import CharacterDocumentSplitter
+from src.loaders.from_blob import FilesDocumentLoader
+from src.loaders.from_sharepoint import SharepointDocumentLoader
 from utils.ml_logging import get_logger
 
 # Initialize logging
@@ -66,7 +67,9 @@ class AzureAIndexer:
         if index_name:
             _ = self.load_azureai_index()
 
-        self.loader_client = DocumentLoaders(container_name=None)
+        self.files_loader_client = FilesDocumentLoader(container_name=None)
+        self.sharepoint_loader_client = SharepointDocumentLoader()
+        self.character_splitter = CharacterDocumentSplitter()
 
     @lru_cache(maxsize=1)
     def load_environment_variables_from_env_file(self):
@@ -303,8 +306,10 @@ class AzureAIndexer:
           specified with the model_name parameter.
         """
         try:
-            documents = self.loader_client.load_files(file_paths=file_paths, **kwargs)
-            chunks = split_documents_in_chunks_from_documents(
+            documents = self.files_loader_client.load_documents(
+                file_paths=file_paths, **kwargs
+            )
+            chunks = self.character_splitter.split_documents_in_chunks_from_documents(
                 documents=documents,
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,
@@ -361,31 +366,14 @@ class AzureAIndexer:
         :return: A list of Document objects, each with associated metadata.
         :raises Exception: If an error occurs during loading or splitting.
         """
-        if isinstance(file_names, str):
-            file_names = [file_names]
-
-        documents = []
-        for file_name in file_names:
-            try:
-                docs = self.loader_client.load_file_from_sharepoint(
-                    file_name=file_name,
-                    site_domain=site_domain,
-                    site_name=site_name,
-                    **kwargs,
-                )
-                if docs:
-                    documents += docs
-                else:
-                    logger.warning(f"No documents were loaded from file {file_name}.")
-            except Exception as e:
-                logger.error(f"Error loading file {file_name}: {e}")
-
-        if not documents:
-            logger.error("No documents were loaded.")
-            return []
-
+        documents = self.sharepoint_loader_client.load_documents(
+            site_name=site_name,
+            site_domain=site_domain,
+            file_names=file_names,
+            **kwargs,
+        )
         try:
-            chunks = split_documents_in_chunks_from_documents(
+            chunks = self.character_splitter.split_documents_in_chunks_from_documents(
                 documents=documents,
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,

@@ -7,13 +7,15 @@ import msal
 import requests
 from dotenv import load_dotenv
 
+from src.extractors.base import DataExtractor
+
 # load logging
 from utils.ml_logging import get_logger
 
 logger = get_logger()
 
 
-class SharePointDataExtractor:
+class SharePointDataExtractor(DataExtractor):
     """This class facilitates the extraction of data from SharePoint using Microsoft Graph API.
     It supports authentication and data retrieval from SharePoint sites, lists, and libraries.
     """
@@ -348,7 +350,7 @@ class SharePointDataExtractor:
 
         return
 
-    def get_file_content_bytes(
+    def extract_content(
         self,
         site_id: str,
         drive_id: str,
@@ -405,7 +407,7 @@ class SharePointDataExtractor:
     #     :param access_token: The access token for Microsoft Graph API authentication.
     #     :return: Text content of the .docx file or None if there's an error.
     #     """
-    #     file_bytes = self.get_file_content_bytes(
+    #     file_bytes = self.extract_content(
     #         site_id, drive_id, folder_path, file_name, access_token
     #     )
     #     if file_bytes is None:
@@ -441,7 +443,7 @@ class SharePointDataExtractor:
     #     :param access_token: The access token for Microsoft Graph API authentication.
     #     :return: Text content of the .docx file or None if there's an error.
     #     """
-    #     file_bytes = self.get_file_content_bytes(
+    #     file_bytes = self.extract_content(
     #         site_id, drive_id, folder_path, file_name, access_token
     #     )
     #     if file_bytes is None:
@@ -457,51 +459,6 @@ class SharePointDataExtractor:
     #     except Exception as err:
     #         logger.error(f"Error processing document: {err}")
     #         return None
-
-    @staticmethod
-    def _extract_file_metadata(
-        file_data: Dict[str, Any]
-    ) -> Dict[str, Optional[Union[str, datetime]]]:
-        """
-        Extracts specific information from the file data.
-
-        This function takes a dictionary containing file data and returns a new dictionary
-        with specific fields: 'webUrl', 'size', 'createdBy', 'createdDateTime',
-        'lastModifiedDateTime', and 'lastModifiedBy'.
-
-        Args:
-            file_data (Dict[str, Any]): The original file data.
-
-        Returns:
-            Dict[str, Optional[Union[str, datetime]]]: A dictionary with the extracted file information.
-            If a field is not present in the file data, the function will return None for that field.
-        """
-
-        def format_date(date_str):
-            # Append 'Z' if it's missing to indicate UTC timezone
-            return date_str if date_str.endswith("Z") else f"{date_str}Z"
-
-        return {
-            "id": file_data.get("id"),
-            "webUrl": file_data.get("webUrl"),
-            "size": file_data.get("size"),
-            "createdBy": file_data.get("createdBy", {})
-            .get("user", {})
-            .get("displayName"),
-            "createdDateTime": format_date(
-                file_data.get("fileSystemInfo", {}).get("createdDateTime", "")
-            )
-            if file_data.get("fileSystemInfo", {}).get("createdDateTime")
-            else None,
-            "lastModifiedDateTime": format_date(
-                file_data.get("fileSystemInfo", {}).get("lastModifiedDateTime", "")
-            )
-            if file_data.get("fileSystemInfo", {}).get("lastModifiedDateTime")
-            else None,
-            "lastModifiedBy": file_data.get("lastModifiedBy", {})
-            .get("user", {})
-            .get("displayName"),
-        }
 
     def retrieve_sharepoint_files_content(
         self,
@@ -567,7 +524,7 @@ class SharePointDataExtractor:
             return True
         return False
 
-    def _get_site_and_drive_ids(
+    def get_site_and_drive_ids(
         self, site_domain: str, site_name: str
     ) -> (Optional[str], Optional[str]):
         """
@@ -624,7 +581,7 @@ class SharePointDataExtractor:
         for file in files:
             file_name = file.get("name")
             if file_name and self._is_file_format_valid(file_name, file_formats):
-                metadata = self._extract_file_metadata(file)
+                metadata = self.extract_metadata(file)
                 content = self._retrieve_file_content(
                     site_id, drive_id, folder_path, file_name
                 )
@@ -633,7 +590,7 @@ class SharePointDataExtractor:
                 )
                 file_content = {
                     "content": content,
-                    **self._format_metadata(metadata, file_name, users_by_role),
+                    **self.format_metadata(metadata, file_name, users_by_role),
                 }
                 file_contents.append(file_content)
 
@@ -677,7 +634,51 @@ class SharePointDataExtractor:
         # Add other file type processing as needed
         return None
 
-    def _format_metadata(
+    def extract_metadata(
+        self, file_data: Dict[str, Any]
+    ) -> Dict[str, Optional[Union[str, datetime]]]:
+        """
+        Extracts specific information from the file data.
+
+        This function takes a dictionary containing file data and returns a new dictionary
+        with specific fields: 'webUrl', 'size', 'createdBy', 'createdDateTime',
+        'lastModifiedDateTime', and 'lastModifiedBy'.
+
+        Args:
+            file_data (Dict[str, Any]): The original file data.
+
+        Returns:
+            Dict[str, Optional[Union[str, datetime]]]: A dictionary with the extracted file information.
+            If a field is not present in the file data, the function will return None for that field.
+        """
+
+        def format_date(date_str):
+            # Append 'Z' if it's missing to indicate UTC timezone
+            return date_str if date_str.endswith("Z") else f"{date_str}Z"
+
+        return {
+            "id": file_data.get("id"),
+            "webUrl": file_data.get("webUrl"),
+            "size": file_data.get("size"),
+            "createdBy": file_data.get("createdBy", {})
+            .get("user", {})
+            .get("displayName"),
+            "createdDateTime": format_date(
+                file_data.get("fileSystemInfo", {}).get("createdDateTime", "")
+            )
+            if file_data.get("fileSystemInfo", {}).get("createdDateTime")
+            else None,
+            "lastModifiedDateTime": format_date(
+                file_data.get("fileSystemInfo", {}).get("lastModifiedDateTime", "")
+            )
+            if file_data.get("fileSystemInfo", {}).get("lastModifiedDateTime")
+            else None,
+            "lastModifiedBy": file_data.get("lastModifiedBy", {})
+            .get("user", {})
+            .get("displayName"),
+        }
+
+    def format_metadata(
         self,
         metadata: Dict,
         file_name: str,

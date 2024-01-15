@@ -1,18 +1,20 @@
 import os
 import tempfile
 from io import BytesIO
-from typing import List, Optional
+from typing import Dict, List, Optional, Union
 
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
 
+from src.extractors.base import DataExtractor
+from src.extractors.utils import get_container_and_blob_name_from_url
 from utils.ml_logging import get_logger
 
 # Initialize logger
 logger = get_logger()
 
 
-class AzureBlobDataExtractor:
+class AzureBlobDataExtractor(DataExtractor):
     """
     Class for managing interactions with Azure Blob Storage. It provides functionalities
     to read and write data to blobs, especially focused on handling various file formats.
@@ -65,22 +67,76 @@ class AzureBlobDataExtractor:
         )
         logger.info(f"Container changed to {new_container_name}")
 
-    def download_blob_files(self, filenames: List[str]) -> List[BytesIO]:
+    def extract_content(self, file_path: str) -> bytes:
         """
         Downloads blobs from a container.
 
         :param filenames: List of filenames to be downloaded from the blob.
         :return: List of BytesIO objects representing the downloaded blobs.
         """
-        blob_data = []
-        for filename in filenames:
-            try:
-                blob_client = self.blob_service_client.get_blob_client(filename)
-                if blob_client.exists():
-                    blob_data.append(BytesIO(blob_client.download_blob().readall()))
-            except Exception as e:
-                logger.error(f"Failed to download blob file {filename}: {e}")
+        (
+            container_name,
+            file_name,
+        ) = get_container_and_blob_name_from_url(file_path)
+        try:
+            blob_data = (
+                self.blob_service_client.get_blob_client(
+                    container=container_name, blob=file_name
+                )
+                .download_blob()
+                .readall()
+            )
+            logger.info(f"Successfully downloaded blob file {file_name}")
+        except Exception as e:
+            logger.error(f"Failed to download blob file {file_name}: {e}")
         return blob_data
+
+    def extract_metadata(self, blob_url: str) -> Dict[str, Optional[Union[str, int]]]:
+        """
+        Extracts metadata from a blob in Azure Blob Storage.
+
+        :param blob_url: URL of the blob.
+        :return: Dictionary with metadata.
+        """
+        container_name, blob_name = get_container_and_blob_name_from_url(blob_url)
+        try:
+            blob_client = self.blob_service_client.get_blob_client(
+                container=container_name, blob=blob_name
+            )
+            blob_properties = blob_client.get_blob_properties()
+
+            # Extracting available metadata
+            return {
+                "url": blob_url,
+                "name": blob_name,
+                "size": blob_properties.size,
+                "content_type": blob_properties.content_settings.content_type,
+                "last_modified": blob_properties.last_modified,
+                # Add other properties as needed
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract metadata for blob {blob_name}: {e}")
+            return {}
+
+    def format_metadata(self, metadata: Dict) -> Dict:
+        """
+        Format and return file metadata.
+
+        :param metadata: Dictionary of file metadata.
+        :param file_name: Name of the file.
+        :param users_by_role: Dictionary of users grouped by their role.
+        :return: Formatted metadata as a dictionary.
+        """
+        formatted_metadata = {
+            "source": metadata.get("url"),
+            "name": metadata.get("blob_name"),
+            "size": metadata.get("size"),
+            "content_type": metadata.get("content_type"),
+            "last_modified": metadata.get("last_modified").isoformat()
+            if metadata.get("last_modified")
+            else None,
+        }
+        return formatted_metadata
 
     def write_blob_data_to_temp_files(
         self, blob_data: List[BytesIO], filenames: List[str]

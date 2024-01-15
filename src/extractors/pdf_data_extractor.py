@@ -5,7 +5,7 @@ from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader
 
 from src.extractors.utils import get_container_and_blob_name_from_url
-from src.loaders.loading import AzureDocumentLoader
+from src.loaders.base import AzureDocumentLoader
 
 # load logging
 from utils.ml_logging import get_logger
