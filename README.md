@@ -1,4 +1,4 @@
-# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Azure AI Search: Vectorize and Index Your Data from Multiple Sources and Formats
+# <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Azure AI Search: Vectorize and Index Your Data from Multiple Sources and Formats (Preview)
 
 This repository offers a detailed, step-by-step guide for vectorizing, chunking, and loading data from a variety of sources and formats into Azure AI Search.
 
@@ -6,18 +6,7 @@ This repository offers a detailed, step-by-step guide for vectorizing, chunking,
     <img src="utils/images/indexing2.png" alt="Indexing_lifecycle" width="950">
 </p>
 
-
-## 🚀 Approach
-
-In the realm of generative AI, the search component is crucial yet often misunderstood. A grounding strategy becomes key to offering great responses to user queries. Azure AI Search offers advanced, out-of-the-box, state-of-the-art search capabilities, making it a great option for those searching for high relevance. However, achieving enhanced relevance in your Ge AI app is a dynamic process. I've simplified it into five key steps, each accompanied by a notebook filled with examples for a straightforward start. The provided code is designed to be adaptable, supporting addition of sources and formats.
-
-## 🔍 Understanding Challenges Indexing into Azure AI Search with LLMs
-
-**🧩 Fragmented Information**
-
-Fragmentation is a notable issue when indexing large documents, especially in contexts where similar terms are scattered in different sections. This can lead to confusion and misinformation due to improper context understanding. The relevance of retrieved information heavily relies on the effectiveness of chunking and sorting strategies implemented.
-
-#### 📊 Data Chunking and Sorting:
+#### 📊 Challenges with Data Chunking and Sorting:
 
 **📏 Optimal Chunk Size**: The challenge lies in determining the right chunk size for documents. If a chunk is too large, it may surpass the model's context window, causing loss of information. Conversely, too small a chunk might lack necessary context, leading to ineffective indexing and retrieval.
 
@@ -29,11 +18,20 @@ Fragmentation is a notable issue when indexing large documents, especially in co
 >
 > Adjusting chunk sizes and overlaps is vital for high-quality text retrieval, especially in precision-based search applications like RAGs. Learn more about fine-tuning and relevance scores [here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-cognitive-search-outperforming-vector-search-with-hybrid/ba-p/3929167).
 
+In the realm of generative AI, the search component is crucial yet often misunderstood. A grounding strategy becomes key to offering great responses to user queries. Azure AI Search offers advanced, out-of-the-box, state-of-the-art search capabilities, making it a great option for those searching for high relevance. However, achieving enhanced relevance in your Ge AI app is a dynamic process. I've simplified it into five key steps, each accompanied by a notebook filled with examples for a straightforward start. The provided code is designed to be adaptable, supporting addition of sources and formats.
+
 ## 🚀 Approach
 
-The streamlined vectorization process enhances the utilization of Azure AI Search's advanced out-of-the-box search capabilities (Hybrid + Rerank), thereby improving your retrieval scores during searches. Moreover, it significantly accelerates the optimization and iteration phases in your Retrieval Augmented Generation (RAG) development stage, making these highly iterative processes more efficient.
-
 The primary goal of this project is to facilitate a smooth integration between multiple data sources and formats and Azure AI Search Index. To achieve this, we've introduced a class named `TextChunkingIndexing`, located in the `src/gbb_ai/text_chunking_indexing.py` module. This class is designed to simplify and optimize the process of text chunking and indexing, overcoming common challenges in the process.
+
+> ❗The `TextChunkingIndexing` class is extensible, allowing for custom logic to be added as needed. Feel free to add methods or modify existing logic to suit your specific use case.
+
+
+<p align="center">
+    <img src="utils/images/image.png" alt="AzureAIndexer" width="950">
+</p>
+
+The streamlined vectorization process enhances the utilization of Azure AI Search's advanced out-of-the-box search capabilities (Hybrid + Rerank), thereby improving your retrieval scores during searches. Moreover, it significantly accelerates the optimization and iteration phases in your Retrieval Augmented Generation (RAG) development stage, making these highly iterative processes more efficient.
 
 > ❗The `TextChunkingIndexing` class is extensible, allowing for custom logic to be added as needed. Feel free to add methods or modify existing logic to suit your specific use case.
 

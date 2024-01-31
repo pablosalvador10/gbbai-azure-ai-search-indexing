@@ -13,7 +13,7 @@ class DataExtractor(ABC):
     """
 
     @abstractmethod
-    def extract_metadata(file_data: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_metadata(self, file_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Abstract method to extract specific information from the file data.
         """
@@ -27,7 +27,7 @@ class DataExtractor(ABC):
         pass
 
     @abstractmethod
-    def extract_content(file_path: str) -> BytesIO:
+    def extract_content(self, file_path: str) -> BytesIO:
         """
         Retrieve the content of a file as bytes from a specific site drive.
 
