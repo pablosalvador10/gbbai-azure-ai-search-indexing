@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from langchain.docstore.document import Document
 from langchain.text_splitter import (
@@ -6,9 +6,9 @@ from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
 )
 
+from src.aoai.settings import encoding_name_for_model
 from src.chunkers.base import DocumentSplitter
 from src.chunkers.utils import count_length_per_chunk
-from src.settings import encoding_name_for_model
 from utils.ml_logging import get_logger
 
 # Initialize logging
@@ -25,7 +25,9 @@ class CharacterDocumentSplitter(DocumentSplitter):
 
     def get_splitter(
         self,
-        splitter_type: str = "recursive",
+        splitter_type: Literal[
+            "by_character_recursive", "by_character_brute_force"
+        ] = "by_character_recursive",
         use_encoder: bool = True,
         chunk_size: int = 512,
         chunk_overlap: int = 128,
@@ -35,7 +37,7 @@ class CharacterDocumentSplitter(DocumentSplitter):
         is_separator_regex: bool = False,
         model_name: Optional[str] = "gpt-4",
         **kwargs,
-    ) -> Union[RecursiveCharacterTextSplitter, CharacterTextSplitter,]:
+    ) -> Union[RecursiveCharacterTextSplitter, CharacterTextSplitter]:
         """
         Returns an instance of a text splitter based on the provided parameters.
 
@@ -58,7 +60,7 @@ class CharacterDocumentSplitter(DocumentSplitter):
         """
         try:
             logger.info(f"Creating a splitter of type: {splitter_type}")
-            if splitter_type == "recursive":
+            if splitter_type == "by_character_recursive":
                 if use_encoder:
                     if model_name is None:
                         raise ValueError(
@@ -84,7 +86,7 @@ class CharacterDocumentSplitter(DocumentSplitter):
                         is_separator_regex=is_separator_regex,
                         **kwargs,
                     )
-            else:
+            elif splitter_type == "by_character_brute_force":
                 if use_encoder:
                     if model_name is None:
                         raise ValueError(
@@ -115,7 +117,9 @@ class CharacterDocumentSplitter(DocumentSplitter):
     def split_documents_in_chunks_from_documents(
         self,
         documents: List[Document],
-        splitter_type: str = "recursive",
+        splitter_type: Literal[
+            "by_character_recursive", "by_character_brute_force"
+        ] = "by_character_recursive",
         use_encoder: bool = True,
         chunk_size: int = 512,
         chunk_overlap: int = 128,

@@ -73,7 +73,7 @@ class SharePointDataExtractor(DataExtractor):
         ]
 
         if missing_vars:
-            raise EnvironmentError(
+            logger.warning(
                 f"Missing required environment variables: {', '.join(missing_vars)}"
             )
 
@@ -105,7 +105,8 @@ class SharePointDataExtractor(DataExtractor):
 
         # Check if all necessary credentials are provided
         if not all([client_id, client_secret, authority]):
-            raise ValueError("Missing required authentication credentials.")
+            logger.warning("Missing required authentication credentials.")
+            return None
 
         app = msal.ConfidentialClientApplication(
             client_id=client_id, authority=authority, client_credential=client_secret
@@ -389,77 +390,6 @@ class SharePointDataExtractor(DataExtractor):
             logger.error(f"Request error: {req_err}")
             return None
 
-    # def process_and_retrieve_docx_content(
-    #     self,
-    #     site_id: str,
-    #     drive_id: str,
-    #     folder_path: Optional[str],
-    #     file_name: str,
-    #     access_token: Optional[str] = None,
-    # ) -> Optional[str]:
-    #     """
-    #     Process the content of a .docx file and extract its text.
-
-    #     :param site_id: The site ID in Microsoft Graph.
-    #     :param drive_id: The drive ID in Microsoft Graph.
-    #     :param folder_path: Path to the folder within the drive, can include subfolders.
-    #     :param file_name: The name of the .docx file.
-    #     :param access_token: The access token for Microsoft Graph API authentication.
-    #     :return: Text content of the .docx file or None if there's an error.
-    #     """
-    #     file_bytes = self.extract_content(
-    #         site_id, drive_id, folder_path, file_name, access_token
-    #     )
-    #     if file_bytes is None:
-    #         return None
-
-    #     if not file_name.endswith(".docx"):
-    #         logger.error(f"File {file_name} is not a .docx file.")
-    #         return None
-
-    #     try:
-    #         document = DocxDocument(io.BytesIO(file_bytes))
-    #         return "\n".join([paragraph.text for paragraph in document.paragraphs])
-    #     except Exception as err:
-    #         logger.error(f"Error processing document: {err}")
-    #         return None
-
-    # def process_and_retrieve_pdf_content(
-    #     self,
-    #     site_id: str,
-    #     drive_id: str,
-    #     folder_path: Optional[str],
-    #     file_name: str,
-    #     access_token: Optional[str] = None,
-    # ) -> Optional[str]:
-    #     """
-    #     Process the content of a .docx file and extract its text.
-
-    #     :param site_id: The site ID in Microsoft Graph.
-    #     :param drive_id: The drive ID in Microsoft Graph.
-    #     :param folder_path: Path to the folder within the drive, can include subfolders.
-    #     :param file_name: The name of the .docx file.
-    #     :param specific_file: Specific .docx file name, if different from file_name.
-    #     :param access_token: The access token for Microsoft Graph API authentication.
-    #     :return: Text content of the .docx file or None if there's an error.
-    #     """
-    #     file_bytes = self.extract_content(
-    #         site_id, drive_id, folder_path, file_name, access_token
-    #     )
-    #     if file_bytes is None:
-    #         return None
-
-    #     if not file_name.endswith(".pdf"):
-    #         logger.error(f"File {file_name} is not a .pdf file.")
-    #         return None
-
-    #     try:
-    #         document = extract_text_from_pdf_bytes(file_bytes)
-    #         return document
-    #     except Exception as err:
-    #         logger.error(f"Error processing document: {err}")
-    #         return None
-
     def retrieve_sharepoint_files_content(
         self,
         site_domain: str,
@@ -694,7 +624,7 @@ class SharePointDataExtractor(DataExtractor):
         """
         formatted_metadata = {
             "id": metadata["id"],
-            "source": metadata["webUrl"],
+            "source_url": metadata["webUrl"],
             "name": file_name,
             "size": metadata["size"],
             "created_by": metadata["createdBy"],

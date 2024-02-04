@@ -1,7 +1,12 @@
+"""
+This module defines the abstract base class for splitting documents into chunks using different strategies.
+"""
 from abc import ABC, abstractmethod
 from typing import List
 
 from langchain.docstore.document import Document
+
+from src.aoai.tokenizer import AzureOpenAITokenizer
 
 
 class DocumentSplitter(ABC):
@@ -13,6 +18,9 @@ class DocumentSplitter(ABC):
     list of Document objects representing the chunks. Subclasses should implement this method to provide specific
     document splitting functionality.
     """
+
+    def __init__(self):
+        self.tokenizer = AzureOpenAITokenizer()
 
     @abstractmethod
     def split_documents_in_chunks_from_documents(

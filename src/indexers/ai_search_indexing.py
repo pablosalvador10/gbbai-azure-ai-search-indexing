@@ -1,6 +1,6 @@
 import os
 from functools import lru_cache
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import nest_asyncio
 from dotenv import load_dotenv
@@ -11,7 +11,9 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.azuresearch import AzureSearch
 
 from src.chunkers.by_character import CharacterDocumentSplitter
+from src.chunkers.by_title import TitleDocumentSplitter
 from src.loaders.from_blob import FilesDocumentLoader
+from src.loaders.from_ocr import OCRFilesDocumentLoader
 from src.loaders.from_sharepoint import SharepointDocumentLoader
 from utils.ml_logging import get_logger
 
@@ -70,8 +72,10 @@ class AzureAIndexer:
         self.files_loader_client = FilesDocumentLoader(container_name=None)
         self.sharepoint_loader_client = SharepointDocumentLoader()
         self.character_splitter = CharacterDocumentSplitter()
+        self.title_splitter = TitleDocumentSplitter()
+        self.ocr_loader_client = OCRFilesDocumentLoader()
 
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=30)
     def load_environment_variables_from_env_file(self):
         """
         Loads required environment variables for the application from a .env file.
@@ -259,8 +263,11 @@ class AzureAIndexer:
     def load_files_and_split_into_chunks(
         self,
         file_paths: Optional[Union[str, List[str]]] = None,
-        splitter_type: str = "recursive",
+        splitter_type: Literal[
+            "by_title", "by_character_recursive", "by_character_brute_force"
+        ] = "recursive",
         use_encoder: bool = True,
+        ocr: bool = False,
         chunk_size: int = 512,
         chunk_overlap: int = 128,
         recursive_separators: Optional[List[str]] = None,
@@ -269,10 +276,15 @@ class AzureAIndexer:
         is_separator_regex: bool = False,
         model_name: Optional[str] = "gpt-4",
         verbose: bool = False,
+        ocr_output_format: Literal["markdown", "text"] = "markdown",
+        section_headings: Optional[List[str]] = None,
+        pages: Optional[str] = None,
         **kwargs,
     ) -> List[Document]:
         """
         Loads text from a file or a URL and splits it into manageable chunks based on character count with additional customization.
+        If the 'ocr' parameter is set to True, the function will use Optical Character Recognition (OCR) via
+        Azure Document Intelligence to extract text from images or scanned documents.
 
         This function can handle text data from a specified file path or directly from a URL.
         It then splits the loaded text into chunks of a specified size with a specified overlap using the specified splitter.
@@ -283,8 +295,9 @@ class AzureAIndexer:
 
         :param file_paths: Path or list of paths of the files to be processed.
         :param splitter_type: The type of splitter to use. Can be "recursive", "tiktoken", "spacy", or "character".
-                              If not found, the character splitter will be selected. Defaults to "recursive".
+                                                    If not found, the character splitter will be selected. Defaults to "recursive".
         :param use_encoder: Boolean flag to choose whether to use an encoder for the splitter. Defaults to True.
+        :param ocr: Boolean flag to enable OCR capabilities for extracting text from images or scanned documents. Defaults to False.
         :param chunk_size: The number of characters in each text chunk. Defaults to 512.
         :param chunk_overlap: The number of characters to overlap between chunks. Defaults to 128.
         :param recursive_separators: List of strings or regex patterns to use as separators for splitting with RecursiveCharacterTextSplitter.
@@ -303,30 +316,89 @@ class AzureAIndexer:
         The size of the chunks and the overlap between them can be customized with the chunk_size and chunk_overlap parameters.
         The separators used for splitting can also be customized with the recursive_separators and char_separator parameters.
         If use_encoder is True, the function uses an encoder for splitting, and the model used for encoding can be
-          specified with the model_name parameter.
+            specified with the model_name parameter.
         """
         try:
-            documents = self.files_loader_client.load_documents(
-                file_paths=file_paths, **kwargs
+            # Define loader clients
+            loader_clients = {
+                "ocr": {
+                    "client": self.ocr_loader_client,
+                    "params": {
+                        "file_paths": file_paths,
+                        "output_format": ocr_output_format,
+                        "pages": pages,
+                        **kwargs,
+                    },
+                },
+                "files": {
+                    "client": self.files_loader_client,
+                    "params": {"file_paths": file_paths, **kwargs},
+                },
+            }
+
+            # Choose the loader client
+            loader_key = "ocr" if ocr else "files"
+            loader_client = loader_clients.get(loader_key, loader_clients["files"])
+
+            # Load documents
+            try:
+                documents = loader_client["client"].load_documents(
+                    **loader_client["params"]
+                )
+            except Exception as e:
+                raise Exception(f"An error occurred during loading documents: {str(e)}")
+
+            # Define splitter methods
+            splitter_methods = {
+                "by_title": {
+                    "method": self.title_splitter.split_documents_in_chunks_from_documents,
+                    "params": {
+                        "documents": documents,
+                        "chunk_size": chunk_size,
+                        "section_headings": section_headings,
+                    },
+                },
+                "default": {
+                    "method": self.character_splitter.split_documents_in_chunks_from_documents,
+                    "params": {
+                        "documents": documents,
+                        "splitter_type": splitter_type,
+                        "use_encoder": use_encoder,
+                        "chunk_size": chunk_size,
+                        "chunk_overlap": chunk_overlap,
+                        "recursive_separators": recursive_separators,
+                        "char_separator": char_separator,
+                        "keep_separator": keep_separator,
+                        "is_separator_regex": is_separator_regex,
+                        "model_name": model_name,
+                        "verbose": verbose,
+                        **kwargs,
+                    },
+                },
+            }
+
+            # Choose the splitter method
+            splitter_key = (
+                "default"
+                if splitter_type
+                in ["by_character_recursive", "by_character_brute_force"]
+                else splitter_type
             )
-            chunks = self.character_splitter.split_documents_in_chunks_from_documents(
-                documents=documents,
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-                recursive_separators=recursive_separators,
-                char_separator=char_separator,
-                keep_separator=keep_separator,
-                is_separator_regex=is_separator_regex,
-                splitter_type=splitter_type,
-                use_encoder=use_encoder,
-                model_name=model_name,
-                verbose=verbose,
-                **kwargs,
+            splitter_method = splitter_methods.get(
+                splitter_key, splitter_methods["default"]
             )
+
+            # Split documents into chunks
+            try:
+                chunks = splitter_method["method"](**splitter_method["params"])
+            except Exception as e:
+                raise Exception(
+                    f"An error occurred during splitting documents: {str(e)}"
+                )
+
             return chunks
         except Exception as e:
-            logger.error(f"Error in loading and splitting text: {e}")
-            raise
+            raise Exception(f"An unexpected error occurred: {str(e)}")
 
     def load_files_and_split_into_chunks_from_sharepoint(
         self,
@@ -392,7 +464,7 @@ class AzureAIndexer:
             logger.error(f"Error in splitting documents into chunks: {e}")
             raise
 
-    def index_text_embeddings(self, text_list: List[str]) -> None:
+    def index_text_embeddings(self, text_list: List[str]) -> bool:
         """
         Generates embeddings for the given texts and indexes them in the configured vector store.
 
@@ -402,13 +474,13 @@ class AzureAIndexer:
         Args:
             text_list (List[str]): A list of text strings for which embeddings are to be generated and indexed.
 
-        Raises:
-            ValueError: If the vector store client is not configured.
-            Exception: If any other error occurs during the embedding generation and indexing process.
+        Returns:
+            bool: True if the operation was successful, False otherwise.
         """
         try:
             if not self.vector_store:
-                raise ValueError("Vector store client is not configured.")
+                logger.warning("Vector store client is not configured.")
+                return False
 
             logger.info(
                 f"Embedding and indexing initiated for {len(text_list)} text chunks."
@@ -417,11 +489,9 @@ class AzureAIndexer:
             logger.info(
                 f"Embedding and indexing completed for {len(text_list)} text chunks."
             )
-        except ValueError as ve:
-            logger.error(f"ValueError occurred during embedding and indexing: {ve}")
-            raise
+            return True
         except Exception as e:
             logger.error(
                 f"Unexpected error occurred during embedding and indexing: {e}"
             )
-            raise
+            return False

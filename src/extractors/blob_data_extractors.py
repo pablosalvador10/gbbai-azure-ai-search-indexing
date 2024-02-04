@@ -107,7 +107,7 @@ class AzureBlobDataExtractor(DataExtractor):
 
             # Extracting available metadata
             return {
-                "url": blob_url,
+                "source_url": blob_url,
                 "name": blob_name,
                 "size": blob_properties.size,
                 "content_type": blob_properties.content_settings.content_type,

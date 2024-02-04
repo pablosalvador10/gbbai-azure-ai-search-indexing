@@ -18,46 +18,39 @@ This repository offers a detailed, step-by-step guide for vectorizing, chunking,
 >
 > Adjusting chunk sizes and overlaps is vital for high-quality text retrieval, especially in precision-based search applications like RAGs. Learn more about fine-tuning and relevance scores [here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-cognitive-search-outperforming-vector-search-with-hybrid/ba-p/3929167).
 
-In the realm of generative AI, the search component is crucial yet often misunderstood. A grounding strategy becomes key to offering great responses to user queries. Azure AI Search offers advanced, out-of-the-box, state-of-the-art search capabilities, making it a great option for those searching for high relevance. However, achieving enhanced relevance in your Ge AI app is a dynamic process. I've simplified it into five key steps, each accompanied by a notebook filled with examples for a straightforward start. The provided code is designed to be adaptable, supporting addition of sources and formats.
 
 ## 🚀 Approach
 
-The primary goal of this project is to facilitate a smooth integration between multiple data sources and formats and Azure AI Search Index. To achieve this, we've introduced a class named `TextChunkingIndexing`, located in the `src/gbb_ai/text_chunking_indexing.py` module. This class is designed to simplify and optimize the process of text chunking and indexing, overcoming common challenges in the process.
-
-> ❗The `TextChunkingIndexing` class is extensible, allowing for custom logic to be added as needed. Feel free to add methods or modify existing logic to suit your specific use case.
-
+The primary goal of this project is to facilitate a smooth integration between multiple data sources and formats and Azure AI Search Index. To achieve this, we've introduced a class named `AzureAIndexer`, located in the `src/indexers/ai_search_indexing.py` module. This class is designed to simplify and optimize the process of text chunking and indexing, overcoming common challenges in the process.
 
 <p align="center">
     <img src="utils/images/image.png" alt="AzureAIndexer" width="950">
 </p>
 
-The streamlined vectorization process enhances the utilization of Azure AI Search's advanced out-of-the-box search capabilities (Hybrid + Rerank), thereby improving your retrieval scores during searches. Moreover, it significantly accelerates the optimization and iteration phases in your Retrieval Augmented Generation (RAG) development stage, making these highly iterative processes more efficient.
+> ❗The `AzureAIndexer` class is extensible, allowing for custom logic to be added as needed. Feel free to add methods or modify existing logic to suit your specific use case.
 
-> ❗The `TextChunkingIndexing` class is extensible, allowing for custom logic to be added as needed. Feel free to add methods or modify existing logic to suit your specific use case.
+### Key Features of AzureAIndexer
 
-### Key Features of TextChunkingIndexing
+- **Content Processing from Various Sources**: This feature provides the ability to parse and process content from a variety of sources and formats such as PDF, audio, API, text, and more. Using a crawl and push pattern, it allows for pulling data from multiple sources, processing the data, and indexing it in bulk.
+- **Chunking Features**: This includes the ability to chunk files, which aids in organizing and structuring the data, ultimately boosting relevance. It offers flexibility to tailor chunk size and overlap, aligning with diverse text processing demands.
+- **Out of the box Integration with Document Intelligence**: This feature enhances processing of complex documents by integrating with advanced OCR capabilities. It significantly improves the extraction and indexing of data from documents with complex layouts.
+- **Seamless Indexing into Azure Search**: This feature enables efficient indexing of the processed and chunked files into an Azure Search index.
 
-- **PDF, Docs, Web Pages, and Text Processing**: provides the ability to parse and process content from various sources including [PDFs](01-indexing_pdfs.ipynb), [web pages](02-indexing_from_web.ipynb) (including HTTPS locations), and [text](03-indexing_from_text.ipynb) or files from various applications such as SharePoint and Blob Storage.
-- **Chunking and Indexing Features**: Functionality to chunk these files, which aids in organizing and structuring the data ultimately boosting relevance. Offers flexibility to tailor chunk size and overlap, aligning with diverse text processing demands.
-- **Seamless Indexing into Azure Search**: efficiently index the processed and chunked files into an Azure Search index.
+### 🛠 Getting Started with `AzureAIndexer`
 
-Also, we'll laverage the Azure AI search sdk and offering an in-depth walkthrough of the various search options available.
-
-### 🛠 Getting Started with `TextChunkingIndexing`
-
-This class serves as a standalone wrapper, simplifying the integration of LangChain and Azure AI Search. It streamlines the process of retrieving, storing, and indexing textual data from web and document sources into Azure AI Search.
-
-Initialize the `TextChunkingIndexing` class:
+Initialize the `AzureAIndexer` class:
 
 ```python
-# Import the TextChunkingIndexing class from the langchain_integration module
-from src.gbb_ai.langchain_integration_azureai import TextChunkingIndexing
+# Import the AzureAIndexer class from the ai_search_indexing module
+from src.indexers.ai_search_indexing import AzureAIndexer
 
-# Create an instance of the TextChunkingIndexing class
-gbb_ai_indexer = TextChunkingIndexing()
+DEPLOYMENT_NAME = "foundational-ada"
+INDEX_NAME = "test-index-002"
 
-# Load the environment variables from the .env file
-gbb_ai_indexer.load_environment_variables_from_env_file()
+# Create an instance of the AzureAIndexer class
+azure_search_indexer_client = AzureAIndexer(
+    index_name=INDEX_NAME, embedding_azure_deployment_name=DEPLOYMENT_NAME
+)
 ```
 
 ## 🔧 Prerequisites
@@ -72,7 +65,7 @@ Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)
 ## 🌲 Project Tree Structure
 
 ```
-📂 gbbai-langchain-azureai-search
+📂 gbbai-azure-ai-search-indexing
 ┣ 📦 src <- Houses main source code for data processing, feature engineering, modeling, inference, and evaluation. README
 ┣ 📂 test <- Runs unit and integration tests for code validation and QA. Check README.
 ┣ 📂 utils <- Contains utility functions and shared code used throughout the project. Detailed info in README

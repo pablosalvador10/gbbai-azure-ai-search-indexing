@@ -1,6 +1,7 @@
 PYTHON_INTERPRETER = python
 CONDA_ENV ?= vector-indexing-azureaisearch
 export PYTHONPATH=$(PWD):$PYTHONPATH;
+export $(grep -v '^#' .env | xargs)
 
 # Target for setting up pre-commit and pre-push hooks
 set_up_precommit_and_prepush:
@@ -79,3 +80,16 @@ remove_conda_env:
 run_pylint:
 	@echo "Running linter"
 	find . -type f -name "*.py" ! -path "./tests/*" | xargs pylint -disable=logging-fstring-interpolation > utils/pylint_report/pylint_report.txt
+
+build_docker_image:
+	@echo "Building docker image"
+	./app/Indexer/deployapp.sh build_container
+
+make run_docker_container:
+	@echo "Running docker container"
+	./app/Indexer/deployapp.sh run_container
+
+
+push_docker_container:
+	@echo "Running docker container"
+	./app/Indexer/deployapp.sh push_container

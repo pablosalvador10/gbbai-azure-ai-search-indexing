@@ -3,7 +3,7 @@ from typing import List
 import tiktoken
 from langchain.docstore.document import Document
 
-from src.settings import encoding_name_for_model
+from src.aoai.settings import encoding_name_for_model
 
 
 def count_length_per_chunk(

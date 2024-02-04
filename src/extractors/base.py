@@ -20,13 +20,6 @@ class DataExtractor(ABC):
         pass
 
     @abstractmethod
-    def format_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Abstract method to format and return file metadata.
-        """
-        pass
-
-    @abstractmethod
     def extract_content(self, file_path: str) -> BytesIO:
         """
         Retrieve the content of a file as bytes from a specific site drive.
