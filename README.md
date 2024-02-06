@@ -38,10 +38,10 @@ Indexing data to Azure AI Search presents several challenges:
 The primary goal of this project is to streamline and enhance the integration between various data sources and formats with the Azure AI Search Index. To achieve this, we've introduced a class named `AzureAIndexer`, located in the `src/indexers/ai_search_indexing.py` module. This class simplifies and optimizes the process of text chunking and data transformation, enabling faster iterations and better integrations. It also reduces overhead and addresses mentioned challenges in the process.
 
 <p align="center">
-    <img src="utils/images/image.png" alt="AzureAIndexer" width="950">
+    <img src="utils/images/UML.png" alt="AzureAIndexer" width="950">
 </p>
 
-> ❗The `AzureAIndexer` class is extensible, allowing for custom logic to be added as needed. Feel free to add methods or modify existing logic to suit your specific use case.
+> ❗Leveraging the best of LangChain and Azure SDKs, the `AzureAIndexer` class integrates Dependency Injection and the Factory Pattern to offer a flexible, extensible solution for advanced language processing and Azure AI Search integrations. Tailor it with custom logic to fit your unique data processing needs.
 
 ### Key Features of AzureAIndexer
 
@@ -66,6 +66,8 @@ azure_search_indexer_client = AzureAIndexer(
     index_name=INDEX_NAME, embedding_azure_deployment_name=DEPLOYMENT_NAME
 )
 ```
+
+Visit the `02-indexing-vectorized-content.ipynb` notebook to see the functionality mentioned above in action.
 
 ## 🔧 Prerequisites
 
