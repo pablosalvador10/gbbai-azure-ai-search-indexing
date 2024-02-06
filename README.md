@@ -1,27 +1,41 @@
 # <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/> Azure AI Search: Vectorize and Index Your Data from Multiple Sources and Formats (Preview)
 
-This repository offers a detailed, step-by-step guide for vectorizing, chunking, and loading data from a variety of sources and formats into Azure AI Search.
+Explore a detailed, step-by-step guide for vectorizing, chunking, loading, indexing and retrieving data from a variety of sources and formats using Azure AI Search.
 
 <p align="center">
     <img src="utils/images/indexing2.png" alt="Indexing_lifecycle" width="950">
 </p>
 
-#### 📊 Challenges with Data Chunking and Sorting:
-
-**📏 Optimal Chunk Size**: The challenge lies in determining the right chunk size for documents. If a chunk is too large, it may surpass the model's context window, causing loss of information. Conversely, too small a chunk might lack necessary context, leading to ineffective indexing and retrieval.
-
-**🔀 Effective Sorting Strategies**: Efficient retrieval is contingent upon how well the chunks are sorted. Prioritizing relevance in sorting is crucial but poses a challenge due to the nuanced understanding required by LLMs in discerning context and relevance within large datasets.
-
-**🔗 Overlap Consideration**: Implementing overlapping chunks is critical for maintaining continuity and preserving context, especially in lengthy documents or complex subject matters. This requires a delicate balance to ensure that information is not fragmented or lost.
 
 > 📌 **Note**
->
-> Adjusting chunk sizes and overlaps is vital for high-quality text retrieval, especially in precision-based search applications like RAGs. Learn more about fine-tuning and relevance scores [here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-cognitive-search-outperforming-vector-search-with-hybrid/ba-p/3929167).
+> Each topic covered in this guide is accompanied by a dedicated Jupyter notebook for a more in-depth..
 
+1. [**Creation of Indexes**](01-creation-indexes.ipynb): This notebook guides you through the process of creating Azure AI Search Indexes.
+2. [**Indexing and Vectorizing Content**](02-indexing-vectorized-content.ipynb): This notebook demonstrates how to chunk, vectorize, and index various types of content from multiple sources using OCR and other AI Services.
+3. [**Retrieval from Multiple Angles**](03-retrieval.ipynb): This notebook shows different methods of retrieving indexed content from Azure AI Search.
+4. [**Quantifying Your Retrievals**](04-evaluation.ipynb): This notebook explains how to measure the relevance and effectiveness of your retrieval system.
+5. [**Orchestrating Your Batch Indexing**](05-automation.ipynb): This notebook provides guidance on how to automate and manage your batch indexing process.
+
+## 💡 Why Developers Choose Azure AI Search?
+
+Azure AI Search stands as the premier cloud AI search service, offering unparalleled relevance scoring and reranking capabilities. Leveraging Hybrid Search using Reciprocal Rank Fusion (RRF) alongside state-of-the-art rerankers, it ensures your RAG application's search results are both comprehensive and contextually relevant, backed by SLA's. more [here](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/azure-cognitive-search-outperforming-vector-search-with-hybrid/ba-p/3929167).
+
+- **Hybrid Search:** Combines the precision of keyword search with the contextual understanding of vector search, delivering highly relevant search results.
+- **Semantic Reranking:** Employs advanced algorithms to refine search results, ensuring the most pertinent information tops your search queries.
+
+## 📊 Challenges in Data Indexing to Azure AI Search
+
+Indexing data to Azure AI Search presents several challenges:
+
+- **Integration with External Services**: While Azure AI Search offers robust native connectors with Azure landscape products, expanding integration capabilities with non-Azure services remains a focus area. This project will help you index your data from anywhere using crawl and pull strategies with flexibility for add-ons. For the latest on data connectors, visit [Azure's data source gallery](https://learn.microsoft.com/EN-US/AZURE/search/search-data-sources-gallery).
+
+- **Optimal Chunk Size Determination**: Identifying the ideal chunk size is critical and not easy. Oversized chunks may exceed the model's context window, while undersized ones might lack necessary context.
+
+- **Advanced Content Processing for Sorting**: Achieving efficient retrieval hinges on the sorting strategy's ability to prioritize relevance. This requires sophisticated processing to understand the nuanced context within large datasets.
 
 ## 🚀 Approach
 
-The primary goal of this project is to facilitate a smooth integration between multiple data sources and formats and Azure AI Search Index. To achieve this, we've introduced a class named `AzureAIndexer`, located in the `src/indexers/ai_search_indexing.py` module. This class is designed to simplify and optimize the process of text chunking and indexing, overcoming common challenges in the process.
+The primary goal of this project is to streamline and enhance the integration between various data sources and formats with the Azure AI Search Index. To achieve this, we've introduced a class named `AzureAIndexer`, located in the `src/indexers/ai_search_indexing.py` module. This class simplifies and optimizes the process of text chunking and data transformation, enabling faster iterations and better integrations. It also reduces overhead and addresses mentioned challenges in the process.
 
 <p align="center">
     <img src="utils/images/image.png" alt="AzureAIndexer" width="950">
@@ -33,7 +47,7 @@ The primary goal of this project is to facilitate a smooth integration between m
 
 - **Content Processing from Various Sources**: This feature provides the ability to parse and process content from a variety of sources and formats such as PDF, audio, API, text, and more. Using a crawl and push pattern, it allows for pulling data from multiple sources, processing the data, and indexing it in bulk.
 - **Chunking Features**: This includes the ability to chunk files, which aids in organizing and structuring the data, ultimately boosting relevance. It offers flexibility to tailor chunk size and overlap, aligning with diverse text processing demands.
-- **Out of the box Integration with Document Intelligence**: This feature enhances processing of complex documents by integrating with advanced OCR capabilities. It significantly improves the extraction and indexing of data from documents with complex layouts.
+- **Out of the box Integration with Document Intelligence and other Azure AI services**: This feature enhances processing of complex documents by integrating with advanced OCR capabilities. It significantly improves the extraction and indexing of data from documents with complex layouts.
 - **Seamless Indexing into Azure Search**: This feature enables efficient indexing of the processed and chunked files into an Azure Search index.
 
 ### 🛠 Getting Started with `AzureAIndexer`
@@ -61,6 +75,11 @@ Please make sure you have met all the prerequisites for this project. A detailed
 
 Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)** guide is your essential resource! It lays out a clear path.
 
+## 🔄 Continuous Integration/Continuous Deployment (CI/CD) (preview)
+
+This project leverages GitHub Actions for automating our DevOps lifecycle.
+
+You can view the configuration and status of our GitHub Actions workflows in the `.github/workflows` directory and the "Actions" tab of our GitHub repository, respectively.
 
 ## 🌲 Project Tree Structure
 
@@ -70,10 +89,11 @@ Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)
 ┣ 📂 test <- Runs unit and integration tests for code validation and QA. Check README.
 ┣ 📂 utils <- Contains utility functions and shared code used throughout the project. Detailed info in README
 ┣ 📜 .pre-commit-config.yaml <- Config for pre-commit hooks ensuring code quality and consistency.
-┣ 📜  01-indexing_pdfs.ipynb <- Jupyter notebook detailing the process of indexing PDFs in Azure AI Search.
-┣ 📜  02-indexing_from_web.ipynb <- Notebook for indexing content sourced from web pages in Azure AI Search.
-┣ 📜  03-indexing_from_text.ipynb <- Demonstrates indexing text data from various sources in Azure AI Search.
-┣ 📜  04-searching_ai_search.ipynb <- A guide to implementing and optimizing search functionalities using Azure AI Search sdk.
+┣ 📜  01-creation_indexes.ipynb <- This notebook guides you through the process of creating Azure AI Search Indexes.
+┣ 📜  02-indexing-vectorized-content.ipynb <- This notebook demonstrates how to chunk, vectorize..
+┣ 📜  03-retrieval.ipynb <- This notebook shows different methods of retrieving indexed content from Azure AI Search.
+┣ 📜  04-evaluation.ipynb <- This notebook explains how to measure the relevance and effectiveness of your retrieval system.
+┣ 📜  05-orchestaration.ipynb <- This notebook provides guidance on how to automate and manage your batch indexing process.
 ┣ 📜 CHANGELOG.md <- Logs project changes, updates, and version history.
 ┣ 📜 CONTRIBUTING.md <- Guidelines for contributing to the project.
 ┣ 📜 environment.yaml <- Conda environment configuration.
@@ -81,5 +101,6 @@ Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)
 ┣ 📜 pyproject.toml <- Configuration file for build system requirements and packaging-related metadata.
 ┣ 📜 README.md <- Overview, setup instructions, and usage details of the project.
 ┣ 📜 requirements-codequality.txt <- Requirements for code quality tools and libraries.
+┣ 📜 REQUIREMENTS.md <- Prerequisites for this project.
 ┣ 📜 requirements.txt <- General project dependencies.
 ```

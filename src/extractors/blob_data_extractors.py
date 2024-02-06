@@ -1,3 +1,5 @@
+"""This class manages interactions with Azure Blob Storage, providing functionalities to read, write,
+ and extract data and metadata from blobs in various file formats."""
 import os
 import tempfile
 from io import BytesIO

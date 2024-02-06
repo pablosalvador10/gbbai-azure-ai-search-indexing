@@ -1,3 +1,6 @@
+"""This module contains the AzureAIIndexer class, which handles indexing vectorized content from various sources
+and formats using Azure AI services.
+"""
 import os
 from functools import lru_cache
 from typing import List, Literal, Optional, Union
@@ -84,9 +87,9 @@ class AzureAIndexer:
         """
         load_dotenv()
 
-        self.openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        self.openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        self.azure_openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
+        self.openai_api_key = os.getenv("AZURE_AOAI_API_KEY")
+        self.openai_endpoint = os.getenv("AZURE_AOAI_API_VERSION")
+        self.azure_openai_api_version = os.getenv("AZURE_AOAI_API_VERSION")
         self.azure_ai_search_service_endpoint = os.getenv(
             "AZURE_AI_SEARCH_SERVICE_ENDPOINT"
         )
@@ -96,9 +99,9 @@ class AzureAIndexer:
         missing_vars = [
             var_name
             for var_name, var in [
-                ("AZURE_OPENAI_API_KEY", self.openai_api_key),
-                ("AZURE_OPENAI_ENDPOINT", self.openai_endpoint),
-                ("AZURE_OPENAI_API_VERSION", self.azure_openai_api_version),
+                ("AZURE_AOAI_API_KEY", self.openai_api_key),
+                ("AZURE_AOAI_API_VERSION", self.openai_endpoint),
+                ("AZURE_AOAI_API_VERSION", self.azure_openai_api_version),
                 (
                     "AZURE_AI_SEARCH_SERVICE_ENDPOINT",
                     self.azure_ai_search_service_endpoint,
