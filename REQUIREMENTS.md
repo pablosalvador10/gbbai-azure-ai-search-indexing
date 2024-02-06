@@ -18,21 +18,46 @@ Before running this notebook, you must configure certain environment variables. 
 Create a `.env` file in your project root (use the provided `.env.sample` as a template) and add the following variables:
 
 ```env
-# Azure AI Search Service Configuration
-AZURE_AI_SEARCH_SERVICE_ENDPOINT="https://your-search-service-name.search.windows.net"  # Replace with your Azure Search Service Endpoint
-AZURE_SEARCH_ADMIN_KEY="your-search-admin-key"  # Replace with your Azure Search Admin Key
-AZURE_SEARCH_INDEX_NAME_DOCUMENTS="<Your Azure Search Index Name for Documents>"
-AZURE_SEARCH_INDEX_NAME_IMAGES_AND_AUDIO="<Your Azure Search Index Name for Images and Audio>"
+# Required: Azure AI Search Service Configuration
+AZURE_AI_SEARCH_SERVICE_ENDPOINT=""
+AZURE_SEARCH_ADMIN_KEY=""
+AZURE_SEARCH_INDEX_NAME_DOCUMENTS=""
+AZURE_SEARCH_INDEX_NAME_IMAGES_AND_AUDIO=""
+
+# Required: Azure Open API Configuration
+AZURE_AOAI_API_KEY=''
+AZURE_AOAI_API_ENDPOINT=''
+AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID=''
+AZURE_AOAI_API_VERSION=''
+
+# Required IF interacting with Blob Storage: Azure Storage Configuration
+AZURE_STORAGE_CONNECTION_STRING=''
+
+# Required IF interacting with SharePoint through Graph API: Microsoft Entra ID Configuration
+TENANT_ID=''
+CLIENT_ID=''
+CLIENT_SECRET=''
+SITE_DOMAIN=''
+SITE_NAME=''
+
+# REQUIRED IF APPLYING OCR: Azure Document Intelligence API Configuration
+AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=""
+AZURE_DOCUMENT_INTELLIGENCE_KEY=""
 ```
 
-Please replace `https://your-search-service-name.search.windows.net`, `your-search-admin-key`, and `your-search-index-name` with your actual Azure Search Service Endpoint, Azure Search Admin Key, and Azure Search Index Name respectively.
+Please replace the placeholders in the `.env` file with your actual configurations for Azure Open API, Azure Storage, Microsoft Entra ID, and Azure Document Intelligence API.
 
-- `AZURE_AI_SEARCH_SERVICE_ENDPOINT`: This is the URL of your Azure Search Service. You can find it in the "Overview" section of your Search Service in the Azure portal.
-- `AZURE_SEARCH_ADMIN_KEY`: This is one of the admin keys for your Azure Search Service. You can find it in the "Keys" section of your Search Service in the Azure portal.
-- `SEARCH_INDEX_NAME_...`: This is the name of the index you want to use in your Azure Search Service. You define this when you create an index.
+- `AZURE_AOAI_API_KEY`, `AZURE_AOAI_API_ENDPOINT`, `AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID`, `AZURE_AOAI_API_VERSION`: These are your Azure Open API configurations. You can find these details in your Azure Open API service in the Azure portal.
+
+- `AZURE_STORAGE_CONNECTION_STRING`: This is the connection string for your Azure Storage. You can find it in the "Access keys" section of your Storage account in the Azure portal.
+
+- `TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`, `SITE_DOMAIN`, `SITE_NAME`: These are your Microsoft Entra ID configurations required for interacting with SharePoint through the Graph API. You can find these details in your Azure Active Directory and SharePoint admin center. For a more detailed guide on SharePoint indexing with Azure Cognitive Search, please refer to this [GitHub repository](https://github.com/liamca/sharepoint-indexing-azure-cognitive-search).
+
+- `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT`, `AZURE_DOCUMENT_INTELLIGENCE_KEY`: These are your Azure Document Intelligence API configurations. You can find these details in your Azure Document Intelligence service in the Azure portal.
 
 > 📌 **Note**
 > Remember not to commit the .env file to your version control system. Add it to your .gitignore file to prevent it from being tracked.
+
 
 ## Create Conda Environment from the Repository
 
