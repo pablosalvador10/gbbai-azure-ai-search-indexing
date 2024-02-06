@@ -73,36 +73,13 @@ Visit the `02-indexing-vectorized-content.ipynb` notebook to see the functionali
 
 Please make sure you have met all the prerequisites for this project. A detailed guide on how to set up your environment and get ready to run all the notebooks and code in this repository can be found in the [REQUIREMENTS.md](REQUIREMENTS.md) file. Please follow the instructions there to ensure a smooth exprience.
 
-## 💼 Contributing:
-
-Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)** guide is your essential resource! It lays out a clear path.
 
 ## 🔄 Continuous Integration/Continuous Deployment (CI/CD) (preview)
 
-This project leverages GitHub Actions for automating our DevOps lifecycle.
+This project leverages GitHub Actions for automating our DevOps lifecycle. More #TODO
 
 You can view the configuration and status of our GitHub Actions workflows in the `.github/workflows` directory and the "Actions" tab of our GitHub repository, respectively.
 
-## 🌲 Project Tree Structure
+## 💼 Contributing:
 
-```
-📂 gbbai-azure-ai-search-indexing
-┣ 📦 src <- Houses main source code for data processing, feature engineering, modeling, inference, and evaluation. README
-┣ 📂 test <- Runs unit and integration tests for code validation and QA. Check README.
-┣ 📂 utils <- Contains utility functions and shared code used throughout the project. Detailed info in README
-┣ 📜 .pre-commit-config.yaml <- Config for pre-commit hooks ensuring code quality and consistency.
-┣ 📜  01-creation_indexes.ipynb <- This notebook guides you through the process of creating Azure AI Search Indexes.
-┣ 📜  02-indexing-vectorized-content.ipynb <- This notebook demonstrates how to chunk, vectorize..
-┣ 📜  03-retrieval.ipynb <- This notebook shows different methods of retrieving indexed content from Azure AI Search.
-┣ 📜  04-evaluation.ipynb <- This notebook explains how to measure the relevance and effectiveness of your retrieval system.
-┣ 📜  05-orchestaration.ipynb <- This notebook provides guidance on how to automate and manage your batch indexing process.
-┣ 📜 CHANGELOG.md <- Logs project changes, updates, and version history.
-┣ 📜 CONTRIBUTING.md <- Guidelines for contributing to the project.
-┣ 📜 environment.yaml <- Conda environment configuration.
-┣ 📜 Makefile <- Simplifies common development tasks and commands.
-┣ 📜 pyproject.toml <- Configuration file for build system requirements and packaging-related metadata.
-┣ 📜 README.md <- Overview, setup instructions, and usage details of the project.
-┣ 📜 requirements-codequality.txt <- Requirements for code quality tools and libraries.
-┣ 📜 REQUIREMENTS.md <- Prerequisites for this project.
-┣ 📜 requirements.txt <- General project dependencies.
-```
+Eager to make significant contributions? Our **[CONTRIBUTING](./CONTRIBUTING.md)** guide is your essential resource! It lays out a clear path.
