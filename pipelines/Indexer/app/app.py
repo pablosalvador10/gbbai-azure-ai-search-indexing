@@ -1,4 +1,5 @@
 import logging
+import time
 from enum import Enum
 from typing import List, Union
 
@@ -7,14 +8,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-# Import the AzureAIndexer class from the ai_search_indexing module
 from src.indexers.ai_search_indexing import AzureAIndexer
 
-# Load environment variables
 load_dotenv()
-
-logger = logging.getLogger("uvicorn")
-logger.setLevel(logging.INFO)
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(logging.INFO)
@@ -57,86 +53,83 @@ class DocumentChunkRequest(BaseModel):
     indexer_config: IndexerConfig
 
 
-# Initialize the FastAPI application
 app = FastAPI()
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
 
 
 @app.post("/indexing_documents")
 async def indexing_documents(request: DocumentChunkRequest):
-    # Extract the file_paths, splitter_params, and indexer_config from the request
     file_paths = request.file_paths
-    splitter_params = (
-        request.splitter_params.dict()
-    )  # Convert to dictionary for unpacking
-    indexer_config = (
-        request.indexer_config.dict()
-    )  # Convert to dictionary for unpacking
+    splitter_params = request.splitter_params.dict()
+    indexer_config = request.indexer_config.dict()
 
-    # Initialize the AzureAIndexer client with indexer_config
     azure_search_indexer_client = AzureAIndexer(**indexer_config)
 
-    # Initialize lists to keep track of failed and successful files
     failed_files: List[str] = []
     successful_files: List[str] = []
-
-    # Initialize a variable to keep track of the total number of chunks
     total_chunks = 0
+    start_time = time.time()
 
-    # Loop over the file paths and process each one individually
     for file_path in file_paths:
-        # Process files and split into chunks
-        document_chunks_to_index = (
-            azure_search_indexer_client.load_files_and_split_into_chunks(
-                file_paths=[file_path],
-                **splitter_params,
+        try:
+            document_chunks_to_index = (
+                azure_search_indexer_client.load_files_and_split_into_chunks(
+                    file_paths=[file_path],
+                    **splitter_params,
+                )
             )
-        )
 
-        # Update the total number of chunks
-        total_chunks += len(document_chunks_to_index)
+            total_chunks += len(document_chunks_to_index)
 
-        # Index the document chunks using the Azure Search Indexer client
-        success = azure_search_indexer_client.index_text_embeddings(
-            document_chunks_to_index
-        )
+            success = azure_search_indexer_client.index_text_embeddings(
+                document_chunks_to_index
+            )
 
-        # If any operation fails, add the file to the failed_files list
-        # Otherwise, add it to the successful_files list
-        if not success:
-            logger.warning(f"Failed to process file: {file_path}")
+            if not success:
+                logger.warning(f"Failed to process file: {file_path}")
+                failed_files.append(file_path)
+            else:
+                successful_files.append(file_path)
+        except Exception as e:
+            logger.error(f"Error processing file {file_path}: {str(e)}")
             failed_files.append(file_path)
-        else:
-            successful_files.append(file_path)
 
-    # Retry logic for failed files
     for file_path in failed_files:
         logger.info(f"Retrying file: {file_path}")
-        # Process files and split into chunks
-        document_chunks_to_index = (
-            azure_search_indexer_client.load_files_and_split_into_chunks(
-                file_paths=[file_path],
-                **splitter_params,
+        try:
+            document_chunks_to_index = (
+                azure_search_indexer_client.load_files_and_split_into_chunks(
+                    file_paths=[file_path],
+                    **splitter_params,
+                )
             )
-        )
 
-        # Index the document chunks using the Azure Search Indexer client
-        success = azure_search_indexer_client.index_text_embeddings(
-            document_chunks_to_index
-        )
+            success = azure_search_indexer_client.index_text_embeddings(
+                document_chunks_to_index
+            )
 
-        # If the operation fails again, log the failure
-        # Otherwise, move the file from the failed_files list to the successful_files list
-        if not success:
-            logger.error(f"Failed to process file after retry: {file_path}")
-        else:
-            failed_files.remove(file_path)
-            successful_files.append(file_path)
+            if not success:
+                logger.error(f"Failed to process file after retry: {file_path}")
+            else:
+                failed_files.remove(file_path)
+                successful_files.append(file_path)
+        except Exception as e:
+            logger.error(f"Error processing file {file_path} on retry: {str(e)}")
+
+    end_time = time.time()
+    indexing_time = end_time - start_time
 
     return {
-        "message": "Documents processed",
-        "successful_files": successful_files,
-        "failed_files": failed_files,
-        "total_chunks": total_chunks,
+        "success": len(failed_files) == 0,
+        "successful_indexed_files": successful_files,
+        "failed_indexed_files": failed_files,
+        "total_chunks_indexed": total_chunks,
+        "index": request.indexer_config.index_name,
+        "indexing_time": indexing_time,
     }
 
 

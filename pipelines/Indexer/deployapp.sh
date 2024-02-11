@@ -15,11 +15,11 @@ fi
 export $(grep -v '^#' .env | xargs)
 
 # Define variables for Docker image name and tag
-imageName="indexingskill" # Assuming 'indexingskill' is your Docker image name
+imageName="chunkingandindexingskill" # Assuming 'chunkingindexingskill' is your Docker image name
 imageTag="latest" # Replace 'latest' with your specific tag if needed
 
 # Define the Azure Container Registry name
-containerRegistryName="${ENVIRONMENT}ContainerRegistry${VERSION}"
+containerRegistryName="${ENVIRONMENT}containerregistryaigbb"
 
 # Check the command line argument
 case "$1" in
@@ -43,15 +43,23 @@ case "$1" in
         ;;
     push_container)
         # Non-Interactive Azure Login using Service Principal
+        echo "Logging in to Azure with service principal..."
+        echo "az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID"
         az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
 
         # Log in to Azure Container Registry
-        az acr login --name $containerRegistryName
+        echo "Logging in to Azure Container Registry..."
+        echo "az acr login --name $containerRegistryName.azurecr.io"
+        az acr login --name $containerRegistryName.azurecr.io
 
         # Tag the Docker image for Azure Container Registry
+        echo "Tagging Docker image for Azure Container Registry..."
+        echo "docker tag $imageName:$imageTag $containerRegistryName.azurecr.io/$imageName:$imageTag"
         docker tag $imageName:$imageTag $containerRegistryName.azurecr.io/$imageName:$imageTag
 
         # Push the Docker image to Azure Container Registry
+        echo "Pushing Docker image to Azure Container Registry..."
+        echo "docker push $containerRegistryName.azurecr.io/$imageName:$imageTag"
         docker push $containerRegistryName.azurecr.io/$imageName:$imageTag
         ;;
     up_app)

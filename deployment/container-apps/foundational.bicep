@@ -14,7 +14,7 @@ param version string
 var resourcePrefix = toLower(replace(replace('${trim(projectName)}-${trim(environment)}', '\r', ''), ' ', '-'))
 
 @description('The name of the Container Registry')
-var containerRegistryName = replace('${trim(environment)}ContainerRegistry${trim(version)}', '\r', '')
+var containerRegistryName = toLower('${environment}ContainerRegistryAigbb')
 
 @description('The name of the Key Vault')
 var keyVaultName = replace('${trim(environment)}-KeyVault-ai-app-${trim(version)}', '\r', '')

@@ -3,8 +3,7 @@ Host: localhost:8000
 Content-Type: application/json
 
 {
-    "file_paths": ["https://testeastusdev001.blob.core.windows.net/customskillspdf/instruction-manual-fieldvue-dvc6200-hw2-digital-valve-controller-en-123052.pdf",
-    "https://testeastusdev001.blob.core.windows.net/customskillspdf/instruction-manual-fieldvue-dvc6200-hw2-digital-valve-controller-en-123052.pdf"],
+    "file_paths": ["https://testeastusdev001.blob.core.windows.net/customskillspdf/instruction-manual-fieldvue-dvc6200-hw2-digital-valve-controller-en-123052.pdf"],
     "splitter_params": {
         "splitter_type": "by_character_recursive",
         "ocr": true,

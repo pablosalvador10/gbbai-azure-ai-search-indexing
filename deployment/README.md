@@ -8,6 +8,35 @@ This guide walks you through deploying Azure resources, including a Container Re
 - An Azure subscription where you have permissions to create resources.
 - A .env file with your project's environment variables defined.
 
+
+#### 🌍 Load Environment Variables
+
+Your .env file should contain the following variables:
+
+```makefile
+PROJECT_NAME=yourProjectName
+ENVIRONMENT=yourEnvironment
+TENANT_ID=yourTenantId
+CLIENT_ID=yourClientId
+CLIENT_SECRET=yourClientSecret
+```
+
+Replace yourProjectName, yourEnvironment, yourTenantId, yourClientId, and yourClientSecret with appropriate values for your project.
+
+- For Unix-like systems (Linux/macOS), you can use:
+
+        ```bash
+        export $(grep -v '^#' .env | xargs)
+        ```
+
+- For Windows systems, you might need to manually set each environment variable using:
+
+        ```powershell
+        $env:PROJECT_NAME="indexingapp"
+        $env:ENVIRONMENT="dev"
+        $env:RESOURCE_GROUP="rg-applications-$env:ENVIRONMENT"
+        ```
+
 #### Creating a Service Principal
 
 Before you can create a service principal, make sure you have met all the prerequisites above. Once you have, follow these steps:
@@ -62,20 +91,6 @@ Follow the instructions to complete the login process.
     In this command, MSYS_NO_PATHCONV=1 disables path translation, allowing the Azure CLI command to run correctly.
 
     That's it! You've created a service principal and assigned it a role in your Azure subscription.
-
-## 🌍 Environment Variables
-
-Your .env file should contain the following variables:
-
-```makefile
-PROJECT_NAME=yourProjectName
-ENVIRONMENT=yourEnvironment
-TENANT_ID=yourTenantId
-CLIENT_ID=yourClientId
-CLIENT_SECRET=yourClientSecret
-```
-
-Replace yourProjectName, yourEnvironment, yourTenantId, yourClientId, and yourClientSecret with appropriate values for your project.
 
 ## 🚦 Steps for Deployment
 
