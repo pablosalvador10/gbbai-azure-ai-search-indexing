@@ -19,13 +19,13 @@ imageName="indexingskill" # Assuming 'indexingskill' is your Docker image name
 imageTag="latest" # Replace 'latest' with your specific tag if needed
 
 # Define the Azure Container Registry name
-registryName="deploymentsdevregistry"
+containerRegistryName="${ENVIRONMENT}ContainerRegistry${VERSION}"
 
 # Check the command line argument
 case "$1" in
     build_container)
         # Build the Docker image
-        docker build -f app/Indexer/Dockerfile -t $imageName:$imageTag .
+        docker build -f app/Indexer/app/Dockerfile -t $imageName:$imageTag .
         ;;
     run_container)
         # Run the Docker container, mapping port 8000 to 8000 and setting environment variables
@@ -46,13 +46,13 @@ case "$1" in
         az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
 
         # Log in to Azure Container Registry
-        az acr login --name $registryName
+        az acr login --name $containerRegistryName
 
         # Tag the Docker image for Azure Container Registry
-        docker tag $imageName:$imageTag $registryName.azurecr.io/$imageName:$imageTag
+        docker tag $imageName:$imageTag $containerRegistryName.azurecr.io/$imageName:$imageTag
 
         # Push the Docker image to Azure Container Registry
-        docker push $registryName.azurecr.io/$imageName:$imageTag
+        docker push $containerRegistryName.azurecr.io/$imageName:$imageTag
         ;;
     up_app)
         az containerapp up -n customskill --ingress external --target-port 8000 \
