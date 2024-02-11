@@ -5,7 +5,7 @@ FROM python:3.11-slim-buster
 WORKDIR /app
 
 # Add the current directory contents into the container at /app
-COPY app/Indexer/. /app
+COPY pipelines/Indexer/app/. /app
 COPY src /app/src
 COPY utils/ml_logging.py /app/utils/ml_logging.py
 

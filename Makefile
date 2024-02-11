@@ -81,15 +81,17 @@ run_pylint:
 	@echo "Running linter"
 	find . -type f -name "*.py" ! -path "./tests/*" | xargs pylint -disable=logging-fstring-interpolation > utils/pylint_report/pylint_report.txt
 
+run_local_indexer_api:
+	$(PYTHON_INTERPRETER) ./pipelines/Indexer/app/app.py
+
 build_docker_image:
 	@echo "Building docker image"
-	./app/Indexer/deployapp.sh build_container
+	./pipelines/Indexer/deployapp.sh build_container
 
-make run_docker_container:
+run_docker_container:
 	@echo "Running docker container"
-	./app/Indexer/deployapp.sh run_container
-
+	./pipelines/Indexer/deployapp.sh run_container
 
 push_docker_container:
 	@echo "Running docker container"
-	./app/Indexer/deployapp.sh push_container
+	./pipelines/Indexer/deployapp.sh push_container

@@ -25,7 +25,7 @@ containerRegistryName="${ENVIRONMENT}ContainerRegistry${VERSION}"
 case "$1" in
     build_container)
         # Build the Docker image
-        docker build -f app/Indexer/app/Dockerfile -t $imageName:$imageTag .
+        docker build -f pipelines/Indexer/app/Dockerfile -t $imageName:$imageTag .
         ;;
     run_container)
         # Run the Docker container, mapping port 8000 to 8000 and setting environment variables
@@ -33,10 +33,10 @@ case "$1" in
             -e AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=$AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT \
             -e AZURE_DOCUMENT_INTELLIGENCE_KEY=$AZURE_DOCUMENT_INTELLIGENCE_KEY \
             -e AZURE_STORAGE_CONNECTION_STRING=$AZURE_STORAGE_CONNECTION_STRING \
-            -e AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY \
-            -e AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT \
-            -e AZURE_OPENAI_DEPLOYMENT_EMBEDDING=$AZURE_OPENAI_DEPLOYMENT_EMBEDDING \
-            -e AZURE_OPENAI_API_VERSION=$AZURE_OPENAI_API_VERSION \
+            -e AZURE_AOAI_API_KEY=$AZURE_AOAI_API_KEY \
+            -e AZURE_AOAI_API_ENDPOINT=$AZURE_AOAI_API_ENDPOINT \
+            -e AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID=$AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID \
+            -e AZURE_AOAI_API_VERSION=$AZURE_AOAI_API_VERSION \
             -e AZURE_AI_SEARCH_SERVICE_ENDPOINT=$AZURE_AI_SEARCH_SERVICE_ENDPOINT \
             -e AZURE_SEARCH_ADMIN_KEY=$AZURE_SEARCH_ADMIN_KEY \
             $imageName
