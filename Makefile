@@ -95,3 +95,7 @@ run_docker_container:
 push_docker_container:
 	@echo "Running docker container"
 	./pipelines/Indexer/deployapp.sh push_container
+
+push_index_app:
+	@echo "Running docker container"
+	./pipelines/Indexer/deployapp.sh deploy_bicep

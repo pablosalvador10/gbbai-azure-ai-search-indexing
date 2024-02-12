@@ -19,8 +19,12 @@ var containerRegistryName = toLower('${environment}ContainerRegistryAigbb')
 @description('The name of the Key Vault')
 var keyVaultName = replace('${trim(environment)}-KeyVault-ai-app-${trim(version)}', '\r', '')
 
-@description('The name of the Application Insights')
-var applicationInsightsName = replace('${trim(environment)}-AppInsights-${trim(version)}', '\r', '')
+@description('Name of the Container App Environment')
+param environmentName string = toLower('${environment}IndexingAzureAigbb')
+
+// Resource - Application Insights
+@description('Name of the log analytics workspace')
+param logAnalyticsName string = toLower('${environment}IndexinglogAzureAigbb')
 
 // Resource - Container Registry
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
@@ -51,18 +55,31 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
   }
 }
 
-// Resource - Application Insights
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: applicationInsightsName
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
+  name: logAnalyticsName
   location: location
-  kind: 'web'
   properties: {
-    Application_Type: 'web'
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
+    sku: {
+      name: 'PerGB2018'
+    }
+  }
+}
+
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' = {
+  name: environmentName
+  location: location
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logAnalyticsWorkspace.properties.customerId
+        sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
+      }
+    }
   }
 }
 
 output containerRegistryLoginServer string = containerRegistry.properties.loginServer
 output keyVaultUri string = keyVault.properties.vaultUri
-output appInsightsInstrumentationKey string = appInsights.properties.InstrumentationKey
+output logAnalyticsCustomerId string = logAnalyticsWorkspace.properties.customerId
+output containerAppEnvironmentId string = containerAppEnvironment.id

@@ -124,14 +124,16 @@ Follow these steps to deploy your Azure resources using the Bicep template:
 
     > **Note:** As an alternative, you could use `az login` for interactive login. However, using a service principal is recommended for automation scenarios as it allows for non-interactive, script-based authentication.
 
-4. **Deploy the Bicep template:** Navigate to the directory containing your Bicep file (`yourBicepFileName.bicep`) and run the following Azure CLI command to start the deployment:
+4. **Deploy the Bicep Foundational:** Navigate to the directory containing your Bicep file (`yourBicepFileName.bicep`) and run the following Azure CLI command to start the deployment:
 
-        ```bash
-        az deployment group create \
-            --resource-group $RESOURCE_GROUP \
-            --template-file yourBicepFileName.bicep \
-            --parameters projectName=$PROJECT_NAME environment=$ENVIRONMENT version=$VERSION
-        ```
+    ```bash
+    az deployment group create \
+        --resource-group $RESOURCE_GROUP \
+        --template-file yourBicepFileName.bicep \
+        --parameters projectName=$PROJECT_NAME \
+                    environment=$ENVIRONMENT \
+                    version=$VERSION
+    ```
 
 Remember to replace `yourBicepFileName.bicep` with the actual name of your Bicep file.
 

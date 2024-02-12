@@ -1,14 +1,47 @@
-@description('The location to deploy the container app')
-param location string
+@description('The location to deploy the resources')
+param location string = resourceGroup().location
 
-@description('The container app environment id to deploy to this container app to')
-param containerAppEnvId string
+@description('The environment of the project')
+param environment string
 
-@description('The name of the container registry that this container app will use')
-param containerRegistryName string
+@description('The name of the Container Registry')
+var containerRegistryName = toLower('${environment}ContainerRegistryAigbb')
+
+@description('Name of the Container App Environment')
+param environmentName string = toLower('${environment}IndexingAzureAigbb')
 
 @description('The container image that this container app will use')
-param containerImage string
+param containerImage string = '${environment}containerregistryaigbb.azurecr.io/chunkingandindexingskill:latest'
+
+@description('The nae of the app will use')
+param containerAppName string
+
+@description('Azure Document Intelligence Endpoint')
+param AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT string
+
+@description('Azure Document Intelligence Key')
+param AZURE_DOCUMENT_INTELLIGENCE_KEY string
+
+@description('Azure Storage Connection String')
+param AZURE_STORAGE_CONNECTION_STRING string
+
+@description('Azure AOAI API Key')
+param AZURE_AOAI_API_KEY string
+
+@description('Azure AOAI API Endpoint')
+param AZURE_AOAI_API_ENDPOINT string
+
+@description('Azure AOAI Embedding Deployment ID')
+param AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID string
+
+@description('Azure AOAI API Version')
+param AZURE_AOAI_API_VERSION string
+
+@description('Azure AI Search Service Endpoint')
+param AZURE_AI_SEARCH_SERVICE_ENDPOINT string
+
+@description('Azure Search Admin Key')
+param AZURE_SEARCH_ADMIN_KEY string
 
 @description('The tags applied to this container app resource')
 param tags object = {}
@@ -24,7 +57,7 @@ param tags object = {}
   '1.75'
   '2'
 ])
-param cpuCore string = '0.5'
+param cpuCore string = '0.25'
 
 @description('Amount of memory (in gibibytes, GiB) allocated to the container up to 4GiB. Can be with a maximum of two decimals. Ratio with CPU cores must be equal to 2.')
 @allowed([
@@ -36,43 +69,27 @@ param cpuCore string = '0.5'
   '3.5'
   '4'
 ])
-param memorySize string = '1'
+param memorySize string = '0.5'
 
 @description('The minimum number of replicas that will be deployed. Must be at least 3 for ZR')
-@minValue(3)
+@minValue(1)
 @maxValue(30)
-param minReplica int = 3
+param minReplica int = 1
 
 @description('The maximum number of replicas that will be deployed')
 @minValue(1)
 @maxValue(30)
-param maxReplica int = 30
+param maxReplica int = 3
 
-@description('The name of the Key Vault that this Container App will pull secrets from')
-param keyVaultName string
-
-@description('The SQL DB connection string the catalog api will use')
-@secure()
-param catalogDbSecret string
-
-@description('The name of the App Insights resource that this Container App uses')
-param applicationInsightsName string
+@description('Concurrent requests allowed for the container app. Must be between 1 and 1000. Default is 100.')
+param concurrentRequests string = '100'
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
   name: containerRegistryName
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: keyVaultName
-}
-
-resource appInsights 'Microsoft.Insights/components@2020-02-02' existing =   {
-  name: applicationInsightsName
-}
-
-var containerAppName = 'catalog'
-var roleDefinitionIds = {
-  keyvault: '4633458b-17de-408a-b874-0445c86b69e6'                  // Key Vault Secrets User
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' existing = {
+  name: environmentName
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
@@ -80,7 +97,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
   location: location
   tags: tags
   properties: {
-    managedEnvironmentId: containerAppEnvId
+    managedEnvironmentId: containerAppEnvironment.id
     configuration: {
       activeRevisionsMode: 'Multiple'
       ingress: {
@@ -117,24 +134,40 @@ resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
           image: containerImage
           env: [
             {
-              name: 'APPINSIGHTS_CONNECTION_STRING'
-              value: appInsights.properties.ConnectionString
+              name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'
+              value: AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT
             }
             {
-              name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-              value: appInsights.properties.InstrumentationKey
+              name: 'AZURE_DOCUMENT_INTELLIGENCE_KEY'
+              value: AZURE_DOCUMENT_INTELLIGENCE_KEY
             }
             {
-              name: 'AZURE_SERVICE_BUS_FQ_NAMESPACE'
-              value: replace(replace(serviceBus.properties.serviceBusEndpoint, 'https://', ''), ':433/', '')
+              name: 'AZURE_STORAGE_CONNECTION_STRING'
+              value: AZURE_STORAGE_CONNECTION_STRING
             }
             {
-              name: 'AZURE_SERVICE_BUS_QUEUE_NAME'
-              value: queueName
+              name: 'AZURE_AOAI_API_KEY'
+              value: AZURE_AOAI_API_KEY
             }
             {
-              name: 'SQL_SERVER_CONNECTION_STRING'
-              value: catalogDbSecret
+              name: 'AZURE_AOAI_API_ENDPOINT'
+              value: AZURE_AOAI_API_ENDPOINT
+            }
+            {
+              name: 'AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID'
+              value: AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID
+            }
+            {
+              name: 'AZURE_AOAI_API_VERSION'
+              value: AZURE_AOAI_API_VERSION
+            }
+            {
+              name: 'AZURE_AI_SEARCH_SERVICE_ENDPOINT'
+              value: AZURE_AI_SEARCH_SERVICE_ENDPOINT
+            }
+            {
+              name: 'AZURE_SEARCH_ADMIN_KEY'
+              value: AZURE_SEARCH_ADMIN_KEY
             }
           ]
           resources: {
@@ -151,7 +184,7 @@ resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
             name: 'http-rule'
             http: {
               metadata: {
-                concurrentRequests: '100'
+                concurrentRequests: concurrentRequests
               }
             }
           }
@@ -161,35 +194,6 @@ resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
   }
   identity: {
     type: 'SystemAssigned'
-  }
-}
-
-resource accessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
-  name: 'add'
-  parent: keyVault
-  properties: {
-    accessPolicies: [
-      {
-        objectId: containerApp.identity.principalId
-        tenantId: containerApp.identity.tenantId
-        permissions: {
-          secrets: [
-            'get'
-            'list'
-          ]
-        }
-      }
-    ]
-  }
-}
-
-resource containerAppKeyVaultRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, containerApp.id, roleDefinitionIds.keyvault)
-  scope: keyVault
-  properties: {
-    principalId: containerApp.identity.principalId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionIds.keyvault)
-    principalType: 'ServicePrincipal'
   }
 }
 
