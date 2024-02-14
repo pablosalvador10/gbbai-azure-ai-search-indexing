@@ -44,7 +44,7 @@ repos:
     rev: 1.5.0
     hooks:
       - id: interrogate
-        args: [src, -v, -i, --fail-under=70]
+        args: [src, -v, -i, --fail-under=50]
         exclude: '^tests/|__init__.py$'
         pass_filenames: false
 

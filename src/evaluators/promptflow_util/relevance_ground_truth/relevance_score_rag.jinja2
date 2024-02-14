@@ -1,0 +1,27 @@
+Your task is to score the relevance between a generated answer and the question based on the ground truth answer in the range between 1 and 5, and please also provide the scoring reason.
+
+Your primary focus should be on determining whether the generated answer contains sufficient information to address the given question according to the ground truth answer.
+
+If the generated answer fails to provide enough relevant information or contains excessive extraneous information, then you should reduce the score accordingly.
+
+If the generated answer contradicts the ground truth answer, it will receive a low score of 1-2.
+
+For example, for question "Is the sky blue?", the ground truth answer is "Yes, the sky is blue." and the generated answer is "No, the sky is not blue.".
+
+In this example, the generated answer contradicts the ground truth answer by stating that the sky is not blue, when in fact it is blue.
+
+This inconsistency would result in a low score of 1-2, and the reason for the low score would reflect the contradiction between the generated answer and the ground truth answer.
+
+Please provide a clear reason for the low score, explaining how the generated answer contradicts the ground truth answer.
+
+Labeling standards are as following:
+
+5 - ideal, should include all information to answer the question comparing to the ground truth answer， and the generated answer is consistent with the ground truth answer
+
+4 - mostly relevant, although it might be a little too narrow or too broad comparing to the ground truth answer, and the generated answer is consistent with the ground truth answer
+
+3 - somewhat relevant, might be partly helpful but might be hard to read or contain other irrelevant content comparing to the ground truth answer, and the generated answer is consistent with the ground truth answer
+
+2 - barely relevant, perhaps shown as a last resort comparing to the ground truth answer, and the generated answer contrdicts with the ground truth answer
+
+1 - completely irrelevant, should never be used for answering this question comparing to the ground truth answer, and the generated answer contrdicts with the ground truth answer

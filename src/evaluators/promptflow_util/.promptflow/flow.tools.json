@@ -1,0 +1,195 @@
+{
+  "package": {},
+  "code": {
+    "coherence/coherence_score.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "answer": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "coherence/coherence_score.jinja2"
+    },
+    "coherence/concat_scores.py": {
+      "type": "python",
+      "inputs": {
+        "coherence_score": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "coherence/concat_scores.py",
+      "function": "concat_results"
+    },
+    "coherence/aggregate_variants_results.py": {
+      "type": "python",
+      "inputs": {
+        "results": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "coherence/aggregate_variants_results.py",
+      "function": "aggregate_variants_results"
+    },
+    "fluency/fluency_score.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "answer": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "fluency/fluency_score.jinja2"
+    },
+    "fluency/concat_scores.py": {
+      "type": "python",
+      "inputs": {
+        "fluency_score": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "fluency/concat_scores.py",
+      "function": "concat_results"
+    },
+    "fluency/aggregate_variants_results.py": {
+      "type": "python",
+      "inputs": {
+        "results": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "fluency/aggregate_variants_results.py",
+      "function": "aggregate_variants_results"
+    },
+    "groundedness/groundedness_score.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "answer": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "context": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "groundedness/groundedness_score.jinja2"
+    },
+    "groundedness/concat_scores.py": {
+      "type": "python",
+      "inputs": {
+        "groundesness_score": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "groundedness/concat_scores.py",
+      "function": "concat_results"
+    },
+    "groundedness/aggregate_variants_results.py": {
+      "type": "python",
+      "inputs": {
+        "results": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "groundedness/aggregate_variants_results.py",
+      "function": "aggregate_variants_results"
+    },
+    "relevance/relevance_score.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "answer": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        },
+        "context": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "relevance/relevance_score.jinja2"
+    },
+    "relevance/concat_scores.py": {
+      "type": "python",
+      "inputs": {
+        "relevance_score": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "relevance/concat_scores.py",
+      "function": "concat_results"
+    },
+    "relevance/aggregate_variants_results.py": {
+      "type": "python",
+      "inputs": {
+        "results": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "relevance/aggregate_variants_results.py",
+      "function": "aggregate_variants_results"
+    }
+  }
+}

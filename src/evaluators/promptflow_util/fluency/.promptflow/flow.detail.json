@@ -1,0 +1,518 @@
+{
+  "flow_runs": [
+    {
+      "run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf_0",
+      "status": "Completed",
+      "error": null,
+      "inputs": {
+        "question": "hey ",
+        "answer": "hola",
+        "chat_history": "[]"
+      },
+      "output": {
+        "gpt_fluency": 5.0
+      },
+      "metrics": {
+        "gpt_fluency": 5.0,
+        "gpt_fluency_pass_rate(%)": 100.0
+      },
+      "request": null,
+      "parent_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf",
+      "root_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf",
+      "source_run_id": null,
+      "flow_id": "QnA_gpt_fluency_eval",
+      "start_time": "2024-02-14T00:31:58.725074Z",
+      "end_time": "2024-02-14T00:32:06.169191Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "flow",
+          "node_name": "flow",
+          "type": "Flow",
+          "start_time": 1707892318.725074,
+          "end_time": 1707892326.169191,
+          "children": [
+            {
+              "name": "AzureOpenAI.chat",
+              "type": "Tool",
+              "inputs": {
+                "prompt": "System: \nYou are an AI assistant. You will be given the definition of an evaluation metric for assessing the quality of an answer in a question-answering task. Your job is to compute an accurate evaluation score using the provided evaluation metric.\n\nUser:\nFluency measures the quality of individual sentences in the answer, and whether they are well-written and grammatically correct. Consider the quality of individual sentences when evaluating fluency. Given the question and answer, score the fluency of the answer between one to five stars using the following rating scale:\nOne star: the answer completely lacks fluency\nTwo stars: the answer mostly lacks fluency\nThree stars: the answer is partially fluent\nFour stars: the answer is mostly fluent\nFive stars: the answer has perfect fluency\n\nThis rating value should always be an integer between 1 and 5. So the rating produced should be 1 or 2 or 3 or 4 or 5.\n\nquestion: What did you have for breakfast today?\nanswer: Breakfast today, me eating cereal and orange juice very good.\nstars: 1\n\nquestion: How do you feel when you travel alone?\nanswer: Alone travel, nervous, but excited also. I feel adventure and like its time.\nstars: 2\n\nquestion: When was the last time you went on a family vacation?\nanswer: Last family vacation, it took place in last summer. We traveled to a beach destination, very fun.\nstars: 3\n\nquestion: What is your favorite thing about your job?\nanswer: My favorite aspect of my job is the chance to interact with diverse people. I am constantly learning from their experiences and stories.\nstars: 4\n\nquestion: Can you describe your morning routine?\nanswer: Every morning, I wake up at 6 am, drink a glass of water, and do some light stretching. After that, I take a shower and get dressed for work. Then, I have a healthy breakfast, usually consisting of oatmeal and fruits, before leaving the house around 7:30 am.\nstars: 5\n\nconversation_history: \n{% for item in chat_history %}\n  - user: {{ item.inputs }}\n    assistant: {{ item.outputs }}\n{% endfor %} \nquestion: {{question}}\nanswer: {{answer}}\nstars:",
+                "question": "hey ",
+                "answer": "hola",
+                "max_tokens": 256,
+                "deployment_name": "foundational-canadaeast-gpt4",
+                "temperature": 0.0,
+                "chat_history": "[]"
+              },
+              "output": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting.",
+              "start_time": 1707892318.728344,
+              "end_time": 1707892326.146857,
+              "error": null,
+              "children": [
+                {
+                  "name": "openai.resources.chat.completions.Completions.create",
+                  "type": "LLM",
+                  "inputs": {
+                    "model": "foundational-canadaeast-gpt4",
+                    "messages": [
+                      {
+                        "role": "system",
+                        "content": "You are an AI assistant. You will be given the definition of an evaluation metric for assessing the quality of an answer in a question-answering task. Your job is to compute an accurate evaluation score using the provided evaluation metric."
+                      },
+                      {
+                        "role": "user",
+                        "content": "Fluency measures the quality of individual sentences in the answer, and whether they are well-written and grammatically correct. Consider the quality of individual sentences when evaluating fluency. Given the question and answer, score the fluency of the answer between one to five stars using the following rating scale:\nOne star: the answer completely lacks fluency\nTwo stars: the answer mostly lacks fluency\nThree stars: the answer is partially fluent\nFour stars: the answer is mostly fluent\nFive stars: the answer has perfect fluency\n\nThis rating value should always be an integer between 1 and 5. So the rating produced should be 1 or 2 or 3 or 4 or 5.\n\nquestion: What did you have for breakfast today?\nanswer: Breakfast today, me eating cereal and orange juice very good.\nstars: 1\n\nquestion: How do you feel when you travel alone?\nanswer: Alone travel, nervous, but excited also. I feel adventure and like its time.\nstars: 2\n\nquestion: When was the last time you went on a family vacation?\nanswer: Last family vacation, it took place in last summer. We traveled to a beach destination, very fun.\nstars: 3\n\nquestion: What is your favorite thing about your job?\nanswer: My favorite aspect of my job is the chance to interact with diverse people. I am constantly learning from their experiences and stories.\nstars: 4\n\nquestion: Can you describe your morning routine?\nanswer: Every morning, I wake up at 6 am, drink a glass of water, and do some light stretching. After that, I take a shower and get dressed for work. Then, I have a healthy breakfast, usually consisting of oatmeal and fruits, before leaving the house around 7:30 am.\nstars: 5\n\nconversation_history: \n  - user:"
+                      },
+                      {
+                        "role": "assistant",
+                        "content": "- user:"
+                      },
+                      {
+                        "role": "assistant",
+                        "content": "question: hey \nanswer: hola\nstars:"
+                      }
+                    ],
+                    "temperature": 0.0,
+                    "top_p": 1.0,
+                    "n": 1,
+                    "stream": false,
+                    "stop": null,
+                    "max_tokens": 256,
+                    "presence_penalty": 0.0,
+                    "frequency_penalty": 0.0,
+                    "logit_bias": {},
+                    "user": "",
+                    "response_format": null
+                  },
+                  "output": {
+                    "id": "chatcmpl-8rxTrS5B3HtSamZrHeerzTpkZ3VDv",
+                    "choices": [
+                      {
+                        "finish_reason": "stop",
+                        "index": 0,
+                        "logprobs": null,
+                        "message": {
+                          "content": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting.",
+                          "role": "assistant",
+                          "function_call": null,
+                          "tool_calls": null
+                        },
+                        "content_filter_results": {
+                          "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                          },
+                          "self_harm": {
+                            "filtered": false,
+                            "severity": "safe"
+                          },
+                          "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                          },
+                          "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                          }
+                        }
+                      }
+                    ],
+                    "created": 1707870719,
+                    "model": "gpt-4",
+                    "object": "chat.completion",
+                    "system_fingerprint": "fp_46925cd5d1",
+                    "usage": {
+                      "completion_tokens": 102,
+                      "prompt_tokens": 459,
+                      "total_tokens": 561
+                    },
+                    "prompt_filter_results": [
+                      {
+                        "prompt_index": 0,
+                        "content_filter_results": {
+                          "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                          },
+                          "self_harm": {
+                            "filtered": false,
+                            "severity": "safe"
+                          },
+                          "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                          },
+                          "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "start_time": 1707892318.732834,
+                  "end_time": 1707892326.145855,
+                  "error": null,
+                  "children": [],
+                  "node_name": null,
+                  "parent_id": "04b2cba4-cfa5-4a96-9241-79701a3b2653",
+                  "id": "a1a5cd15-977a-44dc-a4f5-8a315abce3f7",
+                  "system_metrics": {
+                    "completion_tokens": 102,
+                    "prompt_tokens": 459,
+                    "total_tokens": 561
+                  }
+                }
+              ],
+              "node_name": "fluency_score",
+              "parent_id": "",
+              "id": "04b2cba4-cfa5-4a96-9241-79701a3b2653",
+              "system_metrics": {
+                "completion_tokens": 102,
+                "prompt_tokens": 459,
+                "total_tokens": 561
+              }
+            },
+            {
+              "name": "concat_results",
+              "type": "Tool",
+              "inputs": {
+                "fluency_score": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting."
+              },
+              "output": {
+                "gpt_fluency": 5.0,
+                "gpt_fluency_pass_rate": 1
+              },
+              "start_time": 1707892326.162701,
+              "end_time": 1707892326.164706,
+              "error": null,
+              "children": [],
+              "node_name": "concat_scores",
+              "parent_id": "",
+              "id": "f433183f-1c24-408a-b1f8-5e1efd18d32c",
+              "system_metrics": {}
+            }
+          ],
+          "system_metrics": {
+            "duration": 7.444117,
+            "prompt_tokens": 459,
+            "completion_tokens": 102,
+            "total_tokens": 561
+          }
+        }
+      ],
+      "variant_id": "",
+      "name": "",
+      "description": "",
+      "tags": null,
+      "system_metrics": {
+        "duration": 7.444117,
+        "prompt_tokens": 459,
+        "completion_tokens": 102,
+        "total_tokens": 561
+      },
+      "result": {
+        "gpt_fluency": 5.0
+      },
+      "upload_metrics": false
+    }
+  ],
+  "node_runs": [
+    {
+      "node": "fluency_score",
+      "flow_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf",
+      "run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf_fluency_score_0",
+      "status": "Completed",
+      "inputs": {
+        "question": "hey ",
+        "answer": "hola",
+        "max_tokens": 256,
+        "deployment_name": "foundational-canadaeast-gpt4",
+        "temperature": 0.0,
+        "chat_history": "[]"
+      },
+      "output": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting.",
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf_0",
+      "start_time": "2024-02-14T00:31:58.727802Z",
+      "end_time": "2024-02-14T00:32:06.157638Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "AzureOpenAI.chat",
+          "type": "Tool",
+          "inputs": {
+            "prompt": "System: \nYou are an AI assistant. You will be given the definition of an evaluation metric for assessing the quality of an answer in a question-answering task. Your job is to compute an accurate evaluation score using the provided evaluation metric.\n\nUser:\nFluency measures the quality of individual sentences in the answer, and whether they are well-written and grammatically correct. Consider the quality of individual sentences when evaluating fluency. Given the question and answer, score the fluency of the answer between one to five stars using the following rating scale:\nOne star: the answer completely lacks fluency\nTwo stars: the answer mostly lacks fluency\nThree stars: the answer is partially fluent\nFour stars: the answer is mostly fluent\nFive stars: the answer has perfect fluency\n\nThis rating value should always be an integer between 1 and 5. So the rating produced should be 1 or 2 or 3 or 4 or 5.\n\nquestion: What did you have for breakfast today?\nanswer: Breakfast today, me eating cereal and orange juice very good.\nstars: 1\n\nquestion: How do you feel when you travel alone?\nanswer: Alone travel, nervous, but excited also. I feel adventure and like its time.\nstars: 2\n\nquestion: When was the last time you went on a family vacation?\nanswer: Last family vacation, it took place in last summer. We traveled to a beach destination, very fun.\nstars: 3\n\nquestion: What is your favorite thing about your job?\nanswer: My favorite aspect of my job is the chance to interact with diverse people. I am constantly learning from their experiences and stories.\nstars: 4\n\nquestion: Can you describe your morning routine?\nanswer: Every morning, I wake up at 6 am, drink a glass of water, and do some light stretching. After that, I take a shower and get dressed for work. Then, I have a healthy breakfast, usually consisting of oatmeal and fruits, before leaving the house around 7:30 am.\nstars: 5\n\nconversation_history: \n{% for item in chat_history %}\n  - user: {{ item.inputs }}\n    assistant: {{ item.outputs }}\n{% endfor %} \nquestion: {{question}}\nanswer: {{answer}}\nstars:",
+            "question": "hey ",
+            "answer": "hola",
+            "max_tokens": 256,
+            "deployment_name": "foundational-canadaeast-gpt4",
+            "temperature": 0.0,
+            "chat_history": "[]"
+          },
+          "output": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting.",
+          "start_time": 1707892318.728344,
+          "end_time": 1707892326.146857,
+          "error": null,
+          "children": [
+            {
+              "name": "openai.resources.chat.completions.Completions.create",
+              "type": "LLM",
+              "inputs": {
+                "model": "foundational-canadaeast-gpt4",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are an AI assistant. You will be given the definition of an evaluation metric for assessing the quality of an answer in a question-answering task. Your job is to compute an accurate evaluation score using the provided evaluation metric."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Fluency measures the quality of individual sentences in the answer, and whether they are well-written and grammatically correct. Consider the quality of individual sentences when evaluating fluency. Given the question and answer, score the fluency of the answer between one to five stars using the following rating scale:\nOne star: the answer completely lacks fluency\nTwo stars: the answer mostly lacks fluency\nThree stars: the answer is partially fluent\nFour stars: the answer is mostly fluent\nFive stars: the answer has perfect fluency\n\nThis rating value should always be an integer between 1 and 5. So the rating produced should be 1 or 2 or 3 or 4 or 5.\n\nquestion: What did you have for breakfast today?\nanswer: Breakfast today, me eating cereal and orange juice very good.\nstars: 1\n\nquestion: How do you feel when you travel alone?\nanswer: Alone travel, nervous, but excited also. I feel adventure and like its time.\nstars: 2\n\nquestion: When was the last time you went on a family vacation?\nanswer: Last family vacation, it took place in last summer. We traveled to a beach destination, very fun.\nstars: 3\n\nquestion: What is your favorite thing about your job?\nanswer: My favorite aspect of my job is the chance to interact with diverse people. I am constantly learning from their experiences and stories.\nstars: 4\n\nquestion: Can you describe your morning routine?\nanswer: Every morning, I wake up at 6 am, drink a glass of water, and do some light stretching. After that, I take a shower and get dressed for work. Then, I have a healthy breakfast, usually consisting of oatmeal and fruits, before leaving the house around 7:30 am.\nstars: 5\n\nconversation_history: \n  - user:"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "- user:"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "question: hey \nanswer: hola\nstars:"
+                  }
+                ],
+                "temperature": 0.0,
+                "top_p": 1.0,
+                "n": 1,
+                "stream": false,
+                "stop": null,
+                "max_tokens": 256,
+                "presence_penalty": 0.0,
+                "frequency_penalty": 0.0,
+                "logit_bias": {},
+                "user": "",
+                "response_format": null
+              },
+              "output": {
+                "id": "chatcmpl-8rxTrS5B3HtSamZrHeerzTpkZ3VDv",
+                "choices": [
+                  {
+                    "finish_reason": "stop",
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                      "content": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting.",
+                      "role": "assistant",
+                      "function_call": null,
+                      "tool_calls": null
+                    },
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ],
+                "created": 1707870719,
+                "model": "gpt-4",
+                "object": "chat.completion",
+                "system_fingerprint": "fp_46925cd5d1",
+                "usage": {
+                  "completion_tokens": 102,
+                  "prompt_tokens": 459,
+                  "total_tokens": 561
+                },
+                "prompt_filter_results": [
+                  {
+                    "prompt_index": 0,
+                    "content_filter_results": {
+                      "hate": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "self_harm": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "sexual": {
+                        "filtered": false,
+                        "severity": "safe"
+                      },
+                      "violence": {
+                        "filtered": false,
+                        "severity": "safe"
+                      }
+                    }
+                  }
+                ]
+              },
+              "start_time": 1707892318.732834,
+              "end_time": 1707892326.145855,
+              "error": null,
+              "children": [],
+              "node_name": null,
+              "parent_id": "04b2cba4-cfa5-4a96-9241-79701a3b2653",
+              "id": "a1a5cd15-977a-44dc-a4f5-8a315abce3f7",
+              "system_metrics": {
+                "completion_tokens": 102,
+                "prompt_tokens": 459,
+                "total_tokens": 561
+              }
+            }
+          ],
+          "node_name": "fluency_score",
+          "parent_id": "",
+          "id": "04b2cba4-cfa5-4a96-9241-79701a3b2653",
+          "system_metrics": {
+            "completion_tokens": 102,
+            "prompt_tokens": 459,
+            "total_tokens": 561
+          }
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "completion_tokens": 102,
+        "prompt_tokens": 459,
+        "total_tokens": 561,
+        "duration": 7.429836
+      },
+      "result": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting."
+    },
+    {
+      "node": "concat_scores",
+      "flow_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf",
+      "run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf_concat_scores_0",
+      "status": "Completed",
+      "inputs": {
+        "fluency_score": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting."
+      },
+      "output": {
+        "gpt_fluency": 5.0,
+        "gpt_fluency_pass_rate": 1
+      },
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf_0",
+      "start_time": "2024-02-14T00:32:06.161635Z",
+      "end_time": "2024-02-14T00:32:06.167701Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "concat_results",
+          "type": "Tool",
+          "inputs": {
+            "fluency_score": "I'm sorry, but it seems there was a misunderstanding. To provide a fluency score for the given answer, I need to evaluate the sentence structure and grammatical correctness of the answer \"hola\" in response to \"hey\".\n\nGiven the answer \"hola\" to the question \"hey\", the fluency score would be:\n\nstars: 5\n\nThe answer \"hola\" is a single word, which is grammatically correct and well-written as a response in the context of a casual greeting."
+          },
+          "output": {
+            "gpt_fluency": 5.0,
+            "gpt_fluency_pass_rate": 1
+          },
+          "start_time": 1707892326.162701,
+          "end_time": 1707892326.164706,
+          "error": null,
+          "children": [],
+          "node_name": "concat_scores",
+          "parent_id": "",
+          "id": "f433183f-1c24-408a-b1f8-5e1efd18d32c",
+          "system_metrics": {}
+        }
+      ],
+      "variant_id": "",
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 0.006066
+      },
+      "result": {
+        "gpt_fluency": 5.0,
+        "gpt_fluency_pass_rate": 1
+      }
+    },
+    {
+      "node": "aggregate_variants_results",
+      "flow_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf",
+      "run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf_aggregate_variants_results_reduce",
+      "status": "Completed",
+      "inputs": {
+        "results": [
+          {
+            "gpt_fluency": 5.0,
+            "gpt_fluency_pass_rate": 1
+          }
+        ]
+      },
+      "output": {
+        "gpt_fluency": 5.0,
+        "gpt_fluency_pass_rate": 100.0
+      },
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "6bf6733e-6af4-4d3e-848e-37711ceb8fbf",
+      "start_time": "2024-02-14T00:32:06.173106Z",
+      "end_time": "2024-02-14T00:32:06.178743Z",
+      "index": null,
+      "api_calls": [
+        {
+          "name": "aggregate_variants_results",
+          "type": "Tool",
+          "inputs": {
+            "results": [
+              {
+                "gpt_fluency": 5.0,
+                "gpt_fluency_pass_rate": 1
+              }
+            ]
+          },
+          "output": {
+            "gpt_fluency": 5.0,
+            "gpt_fluency_pass_rate": 100.0
+          },
+          "start_time": 1707892326.174101,
+          "end_time": 1707892326.177807,
+          "error": null,
+          "children": [],
+          "node_name": "aggregate_variants_results",
+          "parent_id": "",
+          "id": "663f804f-a21b-46b4-aed0-3e2f06c03da0",
+          "system_metrics": {}
+        }
+      ],
+      "variant_id": null,
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "duration": 0.005637
+      },
+      "result": {
+        "gpt_fluency": 5.0,
+        "gpt_fluency_pass_rate": 100.0
+      }
+    }
+  ]
+}

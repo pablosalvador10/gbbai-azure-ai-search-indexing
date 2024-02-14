@@ -1,0 +1,86 @@
+{
+    "FIELDVUE DVC6200 HW2 Digital Valve Controller Manual Questions": [
+      {
+        "question": "How does the 'Input Range Hi and Lo' setting correlate with valve travel range and Zero Power Condition in the FIELDVUE DVC6200 HW2, and what are the implications for valve calibration?",
+        "source": "Figure 3-1 and related text detailing calibration related to Zero Power Condition."
+      },
+      {
+        "question": "What are the default settings for 'Burst Mode Enable' and 'Burst Command' in the DVC6200 HW2, and how do they affect the communication efficiency with host systems?",
+        "source": "Table 3-1, Default Detailed Setup Parameters."
+      },
+      {
+        "question": "Discuss the significance and default settings of 'Travel Deviation Alert Enable' and 'Pressure Deviation Alert Enable' in maintaining valve performance and safety.",
+        "source": "Section on Deviation & Other Alerts."
+      },
+      {
+        "question": "How does changing the 'Write Protection' mode impact the security and integrity of the DVC6200 HW2's configuration?",
+        "source": "Mode and Protection subsection."
+      },
+      {
+        "question": "Explain the process and considerations for setting up the 'Pressure Range High' and 'Pressure Range Lo' parameters for pressure control in the DVC6200 HW2.",
+        "source": "Pressure Control subsection."
+      },
+      {
+        "question": "What role does 'Integral Gain' play in the dynamic response and tuning of the DVC6200 HW2, and what are the default settings for optimal control?",
+        "source": "Tuning subsection detailing Integral Gain settings."
+      },
+      {
+        "question": "Describe how the 'Custom Characterization' option allows for tailored control strategies in the DVC6200 HW2, including the process for defining custom input characteristics.",
+        "source": "Characterization subsection and Figure 3-2."
+      },
+      {
+        "question": "How is 'Travel/Pressure Fallback' configured in the DVC6200 HW2 for operational reliability, and what scenarios necessitate its use?",
+        "source": "Pressure Fallback note and related configurations."
+      },
+      {
+        "question": "Discuss the functionality and configuration steps for the 'Local AutoCal Button' in ensuring accurate calibration of the DVC6200 HW2.",
+        "source": "Terminal Box subsection detailing Calibration (CAL) Button."
+      },
+      {
+        "question": "What are the implications of the 'SP Rate Open/Close' settings on valve operation speed and system dynamics in the DVC6200 HW2?",
+        "source": "Dynamic Response subsection discussing SP Rate Open/Close."
+      }
+    ],
+    "Fisher EWD, EWS, and EWT Valves Manual Questions": [
+      {
+        "question": "How do the procedures for replacing piston rings differ between the EWD, EWS, and EWT valve models, particularly in terms of handling the unique piston ring designs and ensuring proper installation without damaging the seal surfaces?",
+        "source": "Valve Plug Maintenance section."
+      },
+      {
+        "question": "What specific precautions must be taken when disassembling and reassembling the valve plug and adaptor assembly to prevent damage to the ENVIRO-SEAL bellows seal bonnet, and how does the process vary for different port diameters?",
+        "source": "Sections detailing the maintenance and retrofitting procedures for valves equipped with C-seal and ENVIRO-SEAL bellows seal bonnets."
+      },
+      {
+        "question": "Describe the detailed process of installing a C-seal plug seal, including the orientation based on flow direction and the use of specific tools to avoid damaging the seal during installation.",
+        "source": "Retrofit: Installing C-seal Trim section."
+      },
+      {
+        "question": "What are the key considerations and steps involved in the machining of lower and upper seating surfaces for valves with C-seal constructions to ensure proper valve operation and avoid potential damage to the C-seal plug seal?",
+        "source": "Remachining Metal Seats (C-seal Constructions)."
+      },
+      {
+        "question": "In the context of replacing the valve stem or adaptor in ENVIRO-SEAL bellows seal bonnets, what are the critical steps to ensure that the new assembly does not compromise the integrity and functionality of the valve system?",
+        "source": "Replacement of an Installed ENVIRO-SEAL Bellows Seal Bonnet (Stem/Bellows Assembly)."
+      },
+      {
+        "question": "How does the procedure for installing the C-seal retainer differ, and what specific method is recommended for securing the retainer to the valve plug to prevent leakage and ensure a tight seal?",
+        "source": "Installation of C-seal retainer."
+      },
+      {
+        "question": "What specific methods and tools are recommended for removing and installing piston rings and C-seal plug seals to prevent damage to the sealing surfaces, and how does this process vary for different valve constructions?",
+        "source": "Trim Removal (C-seal Constructions) and Trim Replacement (C-seal Constructions) sections."
+      },
+      {
+        "question": "Explain the significance of using high-temperature lubricant on the C-seal plug seal and the valve plug's threads during the assembly process, including the correct orientation of the C-seal plug seal based on flow direction.",
+        "source": "Steps for applying lubricant and orienting the C-seal plug seal."
+      },
+      {
+        "question": "What are the recommended torque values for valve stem to plug connections across different valve stem diameters, and how do these values impact the assembly's integrity and performance?",
+        "source": "Table 7. Valve Stem to Plug Torque and Pin Replacement Data."
+      },
+      {
+        "question": "In the context of the ENVIRO-SEAL Bellows Seal Bonnet replacement, detail the process for ensuring the correct assembly of the valve plug/adaptor with the stem/bellows assembly, including precautions to prevent damage to the bellows.",
+        "source": "Replacing a Plain or Extension Bonnet with an ENVIRO-SEAL Bellows Seal Bonnet (Stem/Bellows Assembly)."
+      }
+    ]
+}
