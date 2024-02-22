@@ -15,7 +15,7 @@ fi
 export $(grep -v '^#' .env | xargs)
 
 # Define variables for Docker image name and tag
-imageName="chunkingandindexingskill" # Assuming 'chunkingindexingskill' is your Docker image name
+imageName="chunkingocrskill" # Assuming 'chunkingindexingskill' is your Docker image name
 imageTag="latest" # Replace 'latest' with your specific tag if needed
 templateFile="deployment\\container-apps\\index-azure-ai-app.bicep" # Replace 'yourBicepFileName.bicep' with your Bicep file name
 
@@ -26,7 +26,7 @@ containerRegistryName="${ENVIRONMENT}containerregistryaigbb"
 case "$1" in
     build_container)
         # Build the Docker image
-        docker build -f pipelines/Indexer/app/Dockerfile -t $imageName:$imageTag .
+        docker build -f src/customskills/ocr/Dockerfile -t $imageName:$imageTag .
         ;;
     run_container)
         # Run the Docker container, mapping port 8000 to 8000 and setting environment variables
@@ -58,27 +58,12 @@ case "$1" in
         docker push $containerRegistryName.azurecr.io/$imageName:$imageTag
         ;;
     up_app)
-        az containerapp up -n customskill --ingress external --target-port 8000 \
-            --env-vars AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=$AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT \
-             AZURE_DOCUMENT_INTELLIGENCE_KEY=$AZURE_DOCUMENT_INTELLIGENCE_KEY \
-             STORAGE_CONNNECTION_STRING=$STORAGE_CONNNECTION_STRING \
-            --source .
-        ;;
-    deploy_bicep)
-        az deployment group create \
-            --resource-group $RESOURCE_GROUP \
-            --template-file $templateFile \
-            --parameters environment=$ENVIRONMENT \
-                        containerAppName=$CONTAINER_APP_NAME \
-                        AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=$AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT \
-                        AZURE_DOCUMENT_INTELLIGENCE_KEY=$AZURE_DOCUMENT_INTELLIGENCE_KEY \
-                        AZURE_STORAGE_CONNECTION_STRING=$AZURE_STORAGE_CONNECTION_STRING \
-                        AZURE_AOAI_API_KEY=$AZURE_AOAI_API_KEY \
-                        AZURE_AOAI_API_ENDPOINT=$AZURE_AOAI_API_ENDPOINT \
-                        AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID=$AZURE_AOAI_EMBEDDING_DEPLOYMENT_ID \
-                        AZURE_AOAI_API_VERSION=$AZURE_AOAI_API_VERSION \
-                        AZURE_AI_SEARCH_SERVICE_ENDPOINT=$AZURE_AI_SEARCH_SERVICE_ENDPOINT \
-                        AZURE_SEARCH_ADMIN_KEY=$AZURE_SEARCH_ADMIN_KEY
+        # --image $containerRegistryName.azurecr.io/$imageName:$imageTag \
+        az containerapp up --name customskillocrbbtesttest \
+            --ingress external \
+            --target-port 8000 \
+            --image $containerRegistryName.azurecr.io/$imageName:$imageTag \
+            --env-vars AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=$AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT AZURE_DOCUMENT_INTELLIGENCE_KEY=$AZURE_DOCUMENT_INTELLIGENCE_KEY AZURE_STORAGE_CONNECTION_STRING=$AZURE_STORAGE_CONNECTION_STRING
         ;;
     *)
         usage

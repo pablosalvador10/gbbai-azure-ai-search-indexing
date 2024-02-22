@@ -83,19 +83,19 @@ run_pylint:
 
 make build_docker_image:
 	@echo "Building docker image"
-	./src/customskills/ocr/deployapp.sh build_container
+	./app/Indexing/deployapp.sh build_container
 
 make run_docker_container:
 	@echo "Running docker container"
-	./src/customskills/ocr/deployapp.sh run_container
+	./app/Indexing/deployapp.sh run_container
 
 make push_docker_container:
 	@echo "Running docker container"
-	./src/customskills/ocr/deployapp.sh push_container
+	./app/Indexing/deployapp.sh push_container
 
-make push_docker_container:
+make push_docker_app:
 	@echo "Running docker container"
-	./src/customskills/ocr/deployapp.sh up_app
+	./app/Indexing/deployapp.sh up_app
 
 make run_local_indexer_api:
 	$(PYTHON_INTERPRETER) ./src/customskills/ocr/app.py

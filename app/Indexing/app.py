@@ -1,3 +1,6 @@
+"""
+This is a FastAPI application that indexes documents from an Azure Blob Storage, splitting them into chunks and retrying failed indexing operations.
+"""
 import logging
 import time
 from enum import Enum
@@ -20,6 +23,7 @@ class SplitterType(str, Enum):
     by_title = "by_title"
     by_character_recursive = "by_character_recursive"
     by_character_brute_force = "by_character_brute_force"
+    by_title_brute_force = "by_title_brute_force"
 
 
 class OCRFormat(str, Enum):
@@ -47,10 +51,17 @@ class SplitterParams(BaseModel):
     is_separator_regex: bool
 
 
+class BlobSourceRequest(BaseModel):
+    container: str
+    updated_since: int
+    time_unit: str
+
+
 class DocumentChunkRequest(BaseModel):
     file_paths: Union[str, List[str]]
     splitter_params: SplitterParams
     indexer_config: IndexerConfig
+    # blob_source: BlobSourceRequest
 
 
 app = FastAPI()
@@ -64,6 +75,15 @@ async def health_check():
 @app.post("/indexing_documents")
 async def indexing_documents(request: DocumentChunkRequest):
     file_paths = request.file_paths
+    if file_paths:
+        file_paths = file_paths
+    # else:
+    #     logger.info("file_paths is empty, fetching updated files from Azure Blob Storage.")
+    #     data_source_config = request.blob_source
+    #     logger.info(f"Container name: {data_source_config.container}")
+    #     az_blob = AzureBlobDataExtractor(container_name=data_source_config.container)
+    #     file_paths = az_blob.list_updated_files(updated_since=data_source_config.updated_since, time_unit=data_source_config.time_unit)
+    #     logger.info(f"Updated file paths: {file_paths}")
     splitter_params = request.splitter_params.dict()
     indexer_config = request.indexer_config.dict()
 

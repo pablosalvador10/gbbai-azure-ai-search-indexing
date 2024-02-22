@@ -15,7 +15,7 @@
 # }
 
 
-POST https://customskill.yellowtree-64f92beb.eastus.azurecontainerapps.io/ HTTP/1.1
+POST https://testocr.calmstone-caf48a32.eastus.azurecontainerapps.io/createChunks HTTP/1.1
 Content-Type: application/json
 
 {

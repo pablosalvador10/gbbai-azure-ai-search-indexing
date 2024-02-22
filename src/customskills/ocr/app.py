@@ -98,4 +98,6 @@ async def vectorize(request_body: RequestBody):
 
 # Run the server
 if __name__ == "__main__":
+    import uvicorn  # noqa: F811
+
     uvicorn.run(app, host="0.0.0.0", port=8000, timeout_keep_alive=60)

@@ -67,7 +67,9 @@ class AzureAIndexer:
             self.load_environment_variables_from_env_file()
         if embedding_azure_deployment_name:
             _ = self.load_embedding_model(
-                azure_deployment=embedding_azure_deployment_name
+                api_key=self.openai_api_key,
+                resource_endpoint=self.openai_endpoint,
+                azure_deployment=embedding_azure_deployment_name,
             )
         if index_name:
             _ = self.load_azureai_index()
@@ -88,7 +90,7 @@ class AzureAIndexer:
         load_dotenv()
 
         self.openai_api_key = os.getenv("AZURE_AOAI_API_KEY")
-        self.openai_endpoint = os.getenv("AZURE_AOAI_API_VERSION")
+        self.openai_endpoint = os.getenv("AZURE_AOAI_API_ENDPOINT")
         self.azure_openai_api_version = os.getenv("AZURE_AOAI_API_VERSION")
         self.azure_ai_search_service_endpoint = os.getenv(
             "AZURE_AI_SEARCH_SERVICE_ENDPOINT"
@@ -100,8 +102,7 @@ class AzureAIndexer:
             var_name
             for var_name, var in [
                 ("AZURE_AOAI_API_KEY", self.openai_api_key),
-                ("AZURE_AOAI_API_VERSION", self.openai_endpoint),
-                ("AZURE_AOAI_API_VERSION", self.azure_openai_api_version),
+                ("AZURE_AOAI_API_ENDPOINT", self.openai_endpoint),
                 (
                     "AZURE_AI_SEARCH_SERVICE_ENDPOINT",
                     self.azure_ai_search_service_endpoint,
@@ -135,9 +136,9 @@ class AzureAIndexer:
             resource_endpoint = self.openai_endpoint
 
         if api_key is not None:
-            os.environ["AZURE_OPENAI_API_KEY"] = api_key
+            os.environ["AZURE_AOAI_API_KEY"] = api_key
         if resource_endpoint is not None:
-            os.environ["AZURE_OPENAI_ENDPOINT"] = resource_endpoint
+            os.environ["AZURE_AOAI_API_ENDPOINT"] = resource_endpoint
 
     def load_embedding_model(
         self,
@@ -166,6 +167,8 @@ class AzureAIndexer:
 
         try:
             self.embeddings = AzureOpenAIEmbeddings(
+                api_key=api_key,
+                azure_endpoint=resource_endpoint,
                 azure_deployment=azure_deployment,
                 openai_api_version=openai_api_version or self.azure_openai_api_version,
             )
@@ -267,7 +270,10 @@ class AzureAIndexer:
         self,
         file_paths: Optional[Union[str, List[str]]] = None,
         splitter_type: Literal[
-            "by_title", "by_character_recursive", "by_character_brute_force"
+            "by_title",
+            "by_character_recursive",
+            "by_character_brute_force",
+            "by_title_brute_force",
         ] = "recursive",
         use_encoder: bool = True,
         ocr: bool = False,
@@ -384,7 +390,11 @@ class AzureAIndexer:
             splitter_key = (
                 "default"
                 if splitter_type
-                in ["by_character_recursive", "by_character_brute_force"]
+                in [
+                    "by_character_recursive",
+                    "by_character_brute_force",
+                    "by_title_brute_force",
+                ]
                 else splitter_type
             )
             splitter_method = splitter_methods.get(
