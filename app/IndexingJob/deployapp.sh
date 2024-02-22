@@ -110,7 +110,8 @@ case "$1" in
         --registry-server $containerRegistryName.azurecr.io \
         --registry-identity system \
         --system-assigned \
-        --min-replicas 1 --max-replicas 1 \
+        --min-replicas 1 --max-replicas 5 \
+        --scale-rule-http-concurrency 4 \
         --ingress external \
         --target-port 8000
 
