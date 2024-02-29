@@ -1,3 +1,10 @@
+fastapi==0.104.1
+pydantic==2.5.2
+pydantic_core==2.14.5
+httpx==0.25.2
+python-dotenv==1.0.0
+uvicorn==0.24.0.post1
+requests==2.31.0
 azure-identity
 azure-search-documents==11.4.0
 azure-storage-blob

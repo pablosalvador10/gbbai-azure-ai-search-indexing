@@ -3,6 +3,7 @@ from typing import List, Literal, Optional, Union
 from langchain.docstore.document import Document
 from langchain.text_splitter import (
     CharacterTextSplitter,
+    MarkdownTextSplitter,
     RecursiveCharacterTextSplitter,
 )
 
@@ -26,7 +27,7 @@ class CharacterDocumentSplitter(DocumentSplitter):
     def get_splitter(
         self,
         splitter_type: Literal[
-            "by_character_recursive", "by_character_brute_force"
+            "by_character_recursive", "by_character_brute_force", "by_title_brute_force"
         ] = "by_character_recursive",
         use_encoder: bool = True,
         chunk_size: int = 512,
@@ -86,6 +87,15 @@ class CharacterDocumentSplitter(DocumentSplitter):
                         is_separator_regex=is_separator_regex,
                         **kwargs,
                     )
+            elif splitter_type == "by_title_brute_force":
+                encodername = encoding_name_for_model(model_name)
+                logger.info(f"Using tiktoken encoder: {encodername}")
+                return MarkdownTextSplitter.from_tiktoken_encoder(
+                    encoding_name=encodername,
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap,
+                )
+
             elif splitter_type == "by_character_brute_force":
                 if use_encoder:
                     if model_name is None:
@@ -118,7 +128,7 @@ class CharacterDocumentSplitter(DocumentSplitter):
         self,
         documents: List[Document],
         splitter_type: Literal[
-            "by_character_recursive", "by_character_brute_force"
+            "by_character_recursive", "by_character_brute_force", "by_title_brute_force"
         ] = "by_character_recursive",
         use_encoder: bool = True,
         chunk_size: int = 512,

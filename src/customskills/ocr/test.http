@@ -1,0 +1,32 @@
+# POST http://localhost:8000/createChunks HTTP/1.1
+# Content-Type: application/json
+
+# {
+#     "values": [
+#         {
+#             "recordId": "0",
+#             "data": {
+#                 "url": "https://testeastusdev001.blob.core.windows.net/customskillspdf/instruction-manual-fieldvue-dvc6200-hw2-digital-valve-controller-en-123052.pdf"
+#             },
+#             "chunk_size": 1000,
+#             "chunk_overlap": 100
+#         }
+#     ]
+# }
+
+
+POST https://testocr.calmstone-caf48a32.eastus.azurecontainerapps.io/createChunks HTTP/1.1
+Content-Type: application/json
+
+{
+    "values": [
+        {
+            "recordId": "0",
+            "data": {
+                "url": "https://testeastusdev001.blob.core.windows.net/customskillspdf/instruction-manual-fieldvue-dvc6200-hw2-digital-valve-controller-en-123052.pdf"
+            },
+            "chunk_size": 1000,
+            "chunk_overlap": 100
+        }
+    ]
+}

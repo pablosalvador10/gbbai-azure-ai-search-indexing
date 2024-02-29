@@ -2,10 +2,12 @@
  and extract data and metadata from blobs in various file formats."""
 import os
 import tempfile
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 from azure.storage.blob import BlobServiceClient
+from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 
 from src.extractors.base import DataExtractor
@@ -163,3 +165,88 @@ class AzureBlobDataExtractor(DataExtractor):
                     f"Failed to write blob data to temp file {filenames[i]}: {e}"
                 )
         return temp_files
+
+    def list_updated_files(
+        self,
+        container_name: Optional[str] = None,
+        updated_since: Optional[int] = None,
+        time_unit: Optional[
+            Literal["years", "months", "days", "hours", "minutes", "seconds"]
+        ] = None,
+    ) -> list[str]:
+        """
+        List files in the blob container that have been updated since a specified time.
+
+        Parameters:
+            container_name (str, optional): Name of the blob container. If not provided, uses the container name from the instance.
+            updated_since (int, optional): Number of time units (years, months, days, hours, minutes, seconds) since which to check for updates. If not provided, returns all files.
+            Time is in UTC.
+            time_unit (str, optional): Time unit to use when calculating the time since which to check for updates. Default is None.
+
+        Returns:
+            list: List of filenames of updated files.
+        """
+
+        # Get the blob container
+        container_name = (
+            container_name if container_name is not None else self.container_name
+        )
+        container_client = self.blob_service_client.get_container_client(
+            container=container_name
+        )
+
+        if updated_since is not None and time_unit is not None:
+            if time_unit == "years":
+                updated_since_datetime = datetime.now(timezone.utc) - relativedelta(
+                    years=updated_since
+                )
+            elif time_unit == "months":
+                updated_since_datetime = datetime.now(timezone.utc) - relativedelta(
+                    months=updated_since
+                )
+            elif time_unit == "days":
+                updated_since_datetime = datetime.now(timezone.utc) - timedelta(
+                    days=updated_since
+                )
+            elif time_unit == "hours":
+                updated_since_datetime = datetime.now(timezone.utc) - timedelta(
+                    hours=updated_since
+                )
+            elif time_unit == "minutes":
+                updated_since_datetime = datetime.now(timezone.utc) - timedelta(
+                    minutes=updated_since
+                )
+            elif time_unit == "seconds":
+                updated_since_datetime = datetime.now(timezone.utc) - timedelta(
+                    seconds=updated_since
+                )
+            else:
+                raise ValueError(
+                    "Invalid time_unit. Must be 'years', 'months', 'days', 'hours', 'minutes', or 'seconds'."
+                )
+        else:
+            updated_since_datetime = datetime.min.replace(tzinfo=timezone.utc)
+
+        # Get the blob container
+        container_client = self.blob_service_client.get_container_client(container_name)
+
+        # List all blobs in the container
+        blob_list = container_client.list_blobs()
+
+        updated_files = []
+        for blob in blob_list:
+            # Get the blob client
+            blob_client = container_client.get_blob_client(blob.name)
+
+            # Get the blob properties to check the last modified time
+            blob_properties = blob_client.get_blob_properties()
+
+            # Get the last modified time of the blob
+            last_modified = blob_properties.last_modified.astimezone()
+
+            # Check if the blob was updated after the specified date
+            if last_modified > updated_since_datetime:
+                # If updated, add the blob name to the list
+                updated_files.append(blob_client.url)
+
+        return updated_files
