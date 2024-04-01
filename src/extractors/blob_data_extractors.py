@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from typing import Dict, List, Literal, Optional, Union
 
+import pandas as pd
 from azure.storage.blob import BlobServiceClient
 from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
@@ -175,18 +176,13 @@ class AzureBlobDataExtractor(DataExtractor):
         ] = None,
     ) -> list[str]:
         """
-        List files in the blob container that have been updated since a specified time.
+        Lists files in the blob container that have been updated since a specified time.
 
-        Parameters:
-            container_name (str, optional): Name of the blob container. If not provided, uses the container name from the instance.
-            updated_since (int, optional): Number of time units (years, months, days, hours, minutes, seconds) since which to check for updates. If not provided, returns all files.
-            Time is in UTC.
-            time_unit (str, optional): Time unit to use when calculating the time since which to check for updates. Default is None.
-
-        Returns:
-            list: List of filenames of updated files.
+        :param container_name: Name of the blob container. If not provided, uses the container name from the instance.
+        :param updated_since: Number of time units (years, months, days, hours, minutes, seconds) since which to check for updates. If not provided, returns all files. Time is in UTC.
+        :param time_unit: Time unit to use when calculating the time since which to check for updates. Default is None.
+        :return: List of filenames of updated files.
         """
-
         # Get the blob container
         container_name = (
             container_name if container_name is not None else self.container_name
@@ -250,3 +246,34 @@ class AzureBlobDataExtractor(DataExtractor):
                 updated_files.append(blob_client.url)
 
         return updated_files
+
+    def read_csv_from_blob(
+        self, blob_name: str, container_name: Optional[str] = None, **kwargs
+    ) -> pd.DataFrame:
+        """
+        Reads a CSV file from Azure Blob Storage and converts it into a pandas DataFrame.
+
+        :param blob_name: The name of the blob (CSV file) in Azure Blob Storage.
+        :param container_name: The name of the container in Azure Blob Storage.
+                               If not provided, the default container name set in the class is used.
+        :return: A pandas DataFrame containing the data from the CSV file.
+        :raises ValueError: If both the container_name argument and default_container_name attribute are None.
+        """
+        if container_name is None:
+            if self.container_name is None:
+                raise ValueError(
+                    "Container name must be provided either as an argument or as a default in the class."
+                )
+            else:
+                container_name = self.container_name
+
+        blob_client = self.blob_service_client.get_blob_client(
+            container_name, blob_name
+        )
+
+        with BytesIO() as blob_io:
+            blob_client.download_blob().readinto(blob_io)
+            blob_io.seek(0)  # Go to the start of the stream
+            df = pd.read_csv(blob_io, **kwargs)
+
+        return df
