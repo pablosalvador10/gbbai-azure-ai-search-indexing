@@ -4,6 +4,7 @@ azure-storage-blob
 bs4
 langchain==0.1.0
 langchain-community==0.0.9
+langchain-core==0.1.7
 msal>=0.6.1,<2
 openai==1.6.1
 azure-ai-documentintelligence
@@ -16,6 +17,7 @@ python-docx
 python-dotenv
 requests>=2,<3
 tiktoken
+azure-cosmos==4.2.0
 spacy
 azure-ai-formrecognizer
 docx2txt
