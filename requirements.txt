@@ -19,5 +19,6 @@ requests>=2,<3
 tiktoken
 azure-cosmos==4.2.0
 spacy
+pyodbc
 azure-ai-formrecognizer
 docx2txt
