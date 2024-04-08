@@ -1,8 +1,9 @@
 {
-    "azureFunctions.deploySubpath": "app\\SyncData",
+    "azureFunctions.deploySubpath": "app\\SyncFunctionBlob",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen"
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectLanguageModel": 2
 }

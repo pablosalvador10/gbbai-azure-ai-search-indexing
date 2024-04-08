@@ -22,3 +22,4 @@ spacy
 pyodbc
 azure-ai-formrecognizer
 docx2txt
+azure-functions
